@@ -1,9 +1,11 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_chat_ui/flutter_chat_ui.dart';
 import 'package:flutter_chat_types/flutter_chat_types.dart' as types;
 import 'package:image_picker/image_picker.dart';
 import 'package:uuid/uuid.dart';
 import '../services/supabase_service.dart';
+import '../services/n8n_service.dart';
 import '../models/message_model.dart';
 import 'login_screen.dart';
 
@@ -83,7 +85,7 @@ class _ChatScreenState extends State<ChatScreen> {
     );
 
     _addMessage(textMessage);
-    _sendToBot(message.text, MessageType.text);
+    _sendTextToBot(message.text);
   }
 
   /// Adiciona uma mensagem à lista
@@ -93,28 +95,22 @@ class _ChatScreenState extends State<ChatScreen> {
     });
   }
 
-  /// Envia mensagem para o bot/N8N e recebe resposta
-  Future<void> _sendToBot(String content, MessageType type) async {
+  /// Envia mensagem de texto para o bot via N8N
+  Future<void> _sendTextToBot(String text) async {
     setState(() {
       _isLoading = true;
     });
 
     try {
-      // TODO: Integrar com N8N aqui
-      // Por enquanto, simula uma resposta do bot
-      await Future.delayed(const Duration(seconds: 1));
-
-      // Resposta simulada do bot
-      final botResponse = types.TextMessage(
-        author: _bot,
-        createdAt: DateTime.now().millisecondsSinceEpoch,
-        id: _uuid.v4(),
-        text: _generateBotResponse(content, type),
+      // Envia para o N8N
+      final response = await N8nService.sendMessage(
+        text,
+        _user.id,
       );
 
-      _addMessage(botResponse);
+      // Adiciona resposta do bot
+      _addBotResponse(response);
     } catch (e) {
-      // Tratamento de erro
       _showError('Erro ao enviar mensagem: $e');
     } finally {
       setState(() {
@@ -123,19 +119,90 @@ class _ChatScreenState extends State<ChatScreen> {
     }
   }
 
-  /// Gera uma resposta simulada do bot
-  /// TODO: Substituir por integração real com N8N
-  String _generateBotResponse(String userMessage, MessageType type) {
-    switch (type) {
-      case MessageType.text:
-        return 'Você disse: "$userMessage". Esta é uma resposta simulada. '
-            'A integração com o N8N será implementada em breve.';
-      case MessageType.image:
-        return 'Recebi sua imagem! Análise de imagem será implementada em breve.';
-      case MessageType.audio:
-        return 'Recebi seu áudio! Transcrição será implementada em breve.';
-      default:
-        return 'Mensagem recebida!';
+  /// Envia imagem para o bot via N8N
+  Future<void> _sendImageToBot(File imageFile) async {
+    setState(() {
+      _isLoading = true;
+    });
+
+    try {
+      // Envia para o N8N (usando base64)
+      final response = await N8nService.sendImage(
+        imageFile,
+        _user.id,
+      );
+
+      // Adiciona resposta do bot
+      _addBotResponse(response);
+    } catch (e) {
+      _showError('Erro ao enviar imagem: $e');
+    } finally {
+      setState(() {
+        _isLoading = false;
+      });
+    }
+  }
+
+  /// Envia áudio para o bot via N8N
+  Future<void> _sendAudioToBot(File audioFile) async {
+    setState(() {
+      _isLoading = true;
+    });
+
+    try {
+      // Envia para o N8N (usando base64)
+      final response = await N8nService.sendAudio(
+        audioFile,
+        _user.id,
+      );
+
+      // Adiciona resposta do bot
+      _addBotResponse(response);
+    } catch (e) {
+      _showError('Erro ao enviar áudio: $e');
+    } finally {
+      setState(() {
+        _isLoading = false;
+      });
+    }
+  }
+
+  /// Adiciona a resposta do bot à conversa
+  void _addBotResponse(N8nResponse response) {
+    // Se a resposta for texto
+    if (response.isText) {
+      final botMessage = types.TextMessage(
+        author: _bot,
+        createdAt: DateTime.now().millisecondsSinceEpoch,
+        id: _uuid.v4(),
+        text: response.text,
+      );
+      _addMessage(botMessage);
+    }
+    // Se a resposta for imagem
+    else if (response.isImage && response.data != null) {
+      final botMessage = types.ImageMessage(
+        author: _bot,
+        createdAt: DateTime.now().millisecondsSinceEpoch,
+        id: _uuid.v4(),
+        name: 'response.jpg',
+        size: 0,
+        uri: response.data!, // URL ou base64
+      );
+      _addMessage(botMessage);
+    }
+    // Se a resposta for áudio
+    else if (response.isAudio && response.data != null) {
+      final botMessage = types.FileMessage(
+        author: _bot,
+        createdAt: DateTime.now().millisecondsSinceEpoch,
+        id: _uuid.v4(),
+        name: 'response.m4a',
+        size: 0,
+        uri: response.data!, // URL ou base64
+        mimeType: 'audio/m4a',
+      );
+      _addMessage(botMessage);
     }
   }
 
@@ -216,7 +283,7 @@ class _ChatScreenState extends State<ChatScreen> {
         );
 
         _addMessage(imageMessage);
-        _sendToBot(image.path, MessageType.image);
+        _sendImageToBot(File(image.path));
       }
     } catch (e) {
       _showError('Erro ao selecionar imagem: $e');
@@ -242,7 +309,7 @@ class _ChatScreenState extends State<ChatScreen> {
         );
 
         _addMessage(imageMessage);
-        _sendToBot(photo.path, MessageType.image);
+        _sendImageToBot(File(photo.path));
       }
     } catch (e) {
       _showError('Erro ao tirar foto: $e');
