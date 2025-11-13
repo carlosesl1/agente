@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'services/supabase_service.dart';
+import 'screens/login_screen.dart';
 
 /// Ponto de entrada da aplicação
 ///
@@ -116,14 +117,14 @@ class _AuthGateState extends State<AuthGate> {
       // TODO: Substituir por ChatScreen quando criar a tela
       return const PlaceholderChatScreen();
     } else {
-      // TODO: Substituir por LoginScreen quando criar a tela
-      return const PlaceholderLoginScreen();
+      // Usa a tela de login real
+      return const LoginScreen();
     }
   }
 }
 
-// ========== TELAS PLACEHOLDER (TEMPORÁRIAS) ==========
-// Essas telas serão substituídas pelas telas reais posteriormente
+// ========== TELA PLACEHOLDER TEMPORÁRIA ==========
+// Esta tela será substituída pela tela de chat real posteriormente
 
 /// Tela placeholder para o chat (será substituída)
 class PlaceholderChatScreen extends StatelessWidget {
@@ -176,71 +177,6 @@ class PlaceholderChatScreen extends StatelessWidget {
                 textAlign: TextAlign.center,
                 style: TextStyle(fontSize: 14),
               ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-/// Tela placeholder para login (será substituída)
-class PlaceholderLoginScreen extends StatelessWidget {
-  const PlaceholderLoginScreen({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Login'),
-        backgroundColor: Theme.of(context).colorScheme.inversePrimary,
-      ),
-      body: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            const Icon(Icons.login, size: 100, color: Colors.blue),
-            const SizedBox(height: 24),
-            const Text(
-              'Tela de Login',
-              style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
-            ),
-            const SizedBox(height: 16),
-            const Padding(
-              padding: EdgeInsets.all(16.0),
-              child: Text(
-                'Esta é uma tela temporária.\nA tela real de login será criada posteriormente.',
-                textAlign: TextAlign.center,
-                style: TextStyle(fontSize: 14),
-              ),
-            ),
-            const SizedBox(height: 24),
-            ElevatedButton.icon(
-              onPressed: () {
-                // Simula um login (apenas para teste)
-                // Na tela real, isso será substituído pelo formulário
-                showDialog(
-                  context: context,
-                  builder: (context) => AlertDialog(
-                    title: const Text('Informação'),
-                    content: const Text(
-                      'A funcionalidade de login será implementada posteriormente.\n\n'
-                      'Para testar, você precisará:\n'
-                      '1. Configurar as credenciais do Supabase\n'
-                      '2. Criar a tela de login real\n'
-                      '3. Implementar os formulários de autenticação',
-                    ),
-                    actions: [
-                      TextButton(
-                        onPressed: () => Navigator.pop(context),
-                        child: const Text('OK'),
-                      ),
-                    ],
-                  ),
-                );
-              },
-              icon: const Icon(Icons.info_outline),
-              label: const Text('Info sobre Login'),
             ),
           ],
         ),
