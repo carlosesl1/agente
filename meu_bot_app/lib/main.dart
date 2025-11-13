@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'services/supabase_service.dart';
 import 'screens/login_screen.dart';
+import 'screens/chat_screen.dart';
 
 /// Ponto de entrada da aplicação
 ///
@@ -52,8 +53,8 @@ class MyApp extends StatelessWidget {
 /// Widget que verifica se o usuário está autenticado
 /// e redireciona para a tela apropriada
 ///
-/// - Se autenticado: vai para ChatScreen (ainda não criada)
-/// - Se não autenticado: vai para LoginScreen (ainda não criada)
+/// - Se autenticado: vai para ChatScreen
+/// - Se não autenticado: vai para LoginScreen
 class AuthGate extends StatefulWidget {
   const AuthGate({super.key});
 
@@ -114,73 +115,11 @@ class _AuthGateState extends State<AuthGate> {
 
     // Redireciona conforme estado de autenticação
     if (_isAuthenticated) {
-      // TODO: Substituir por ChatScreen quando criar a tela
-      return const PlaceholderChatScreen();
+      // Usa a tela de chat real
+      return const ChatScreen();
     } else {
       // Usa a tela de login real
       return const LoginScreen();
     }
-  }
-}
-
-// ========== TELA PLACEHOLDER TEMPORÁRIA ==========
-// Esta tela será substituída pela tela de chat real posteriormente
-
-/// Tela placeholder para o chat (será substituída)
-class PlaceholderChatScreen extends StatelessWidget {
-  const PlaceholderChatScreen({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    final user = SupabaseService.getCurrentUser();
-
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Chat'),
-        backgroundColor: Theme.of(context).colorScheme.inversePrimary,
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.logout),
-            tooltip: 'Logout',
-            onPressed: () async {
-              await SupabaseService.signOut();
-              if (context.mounted) {
-                // Recarrega o app para voltar à tela de login
-                Navigator.of(context).pushReplacement(
-                  MaterialPageRoute(builder: (_) => const AuthGate()),
-                );
-              }
-            },
-          ),
-        ],
-      ),
-      body: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            const Icon(Icons.chat_bubble_outline, size: 100, color: Colors.blue),
-            const SizedBox(height: 24),
-            const Text(
-              'Tela de Chat',
-              style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
-            ),
-            const SizedBox(height: 8),
-            Text(
-              'Usuário: ${user?.email ?? "Desconhecido"}',
-              style: const TextStyle(fontSize: 16, color: Colors.grey),
-            ),
-            const SizedBox(height: 16),
-            const Padding(
-              padding: EdgeInsets.all(16.0),
-              child: Text(
-                'Esta é uma tela temporária.\nA tela real de chat será criada posteriormente.',
-                textAlign: TextAlign.center,
-                style: TextStyle(fontSize: 14),
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
   }
 }
