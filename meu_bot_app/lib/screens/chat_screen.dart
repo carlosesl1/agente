@@ -2,10 +2,11 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_chat_ui/flutter_chat_ui.dart';
 import 'package:flutter_chat_types/flutter_chat_types.dart' as types;
-import 'package:image_picker/image_picker.dart';
 import 'package:uuid/uuid.dart';
 import '../services/supabase_service.dart';
 import '../services/n8n_service.dart';
+import '../services/media_service.dart';
+import '../services/audio_service.dart';
 import '../models/message_model.dart';
 import 'login_screen.dart';
 
@@ -28,9 +29,6 @@ class _ChatScreenState extends State<ChatScreen> {
 
   // Bot
   late final types.User _bot;
-
-  // Image picker para selecionar imagens
-  final ImagePicker _imagePicker = ImagePicker();
 
   // UUID generator para IDs únicos
   final Uuid _uuid = const Uuid();
@@ -264,26 +262,39 @@ class _ChatScreenState extends State<ChatScreen> {
     }
   }
 
-  /// Seleciona e envia uma imagem
+  /// Seleciona e envia uma imagem da galeria
   Future<void> _handleImageSelection() async {
     try {
-      final XFile? image = await _imagePicker.pickImage(
-        source: ImageSource.gallery,
-        imageQuality: 70,
-      );
+      // Usa MediaService para selecionar imagem
+      final imageFile = await MediaService.pickImageFromGallery();
 
-      if (image != null) {
+      if (imageFile != null) {
+        // Valida a imagem
+        if (!MediaService.isValidImage(imageFile)) {
+          _showError('Formato de imagem inválido');
+          return;
+        }
+
+        // Valida tamanho (max 10 MB)
+        if (!await MediaService.isImageSizeValid(imageFile, maxSizeInMB: 10)) {
+          _showError('Imagem muito grande. Máximo: 10 MB');
+          return;
+        }
+
+        // Mostra a imagem no chat
         final imageMessage = types.ImageMessage(
           author: _user,
           createdAt: DateTime.now().millisecondsSinceEpoch,
           id: _uuid.v4(),
-          name: image.name,
-          size: await image.length(),
-          uri: image.path,
+          name: imageFile.path.split('/').last,
+          size: await imageFile.length(),
+          uri: imageFile.path,
         );
 
         _addMessage(imageMessage);
-        _sendImageToBot(File(image.path));
+
+        // Envia para o bot
+        _sendImageToBot(imageFile);
       }
     } catch (e) {
       _showError('Erro ao selecionar imagem: $e');
@@ -293,23 +304,36 @@ class _ChatScreenState extends State<ChatScreen> {
   /// Tira uma foto com a câmera
   Future<void> _handleCameraCapture() async {
     try {
-      final XFile? photo = await _imagePicker.pickImage(
-        source: ImageSource.camera,
-        imageQuality: 70,
-      );
+      // Usa MediaService para capturar foto
+      final photoFile = await MediaService.pickImageFromCamera();
 
-      if (photo != null) {
+      if (photoFile != null) {
+        // Valida a foto
+        if (!MediaService.isValidImage(photoFile)) {
+          _showError('Formato de imagem inválido');
+          return;
+        }
+
+        // Valida tamanho (max 10 MB)
+        if (!await MediaService.isImageSizeValid(photoFile, maxSizeInMB: 10)) {
+          _showError('Foto muito grande. Máximo: 10 MB');
+          return;
+        }
+
+        // Mostra a foto no chat
         final imageMessage = types.ImageMessage(
           author: _user,
           createdAt: DateTime.now().millisecondsSinceEpoch,
           id: _uuid.v4(),
-          name: photo.name,
-          size: await photo.length(),
-          uri: photo.path,
+          name: photoFile.path.split('/').last,
+          size: await photoFile.length(),
+          uri: photoFile.path,
         );
 
         _addMessage(imageMessage);
-        _sendImageToBot(File(photo.path));
+
+        // Envia para o bot
+        _sendImageToBot(photoFile);
       }
     } catch (e) {
       _showError('Erro ao tirar foto: $e');
@@ -318,8 +342,58 @@ class _ChatScreenState extends State<ChatScreen> {
 
   /// Grava e envia um áudio
   Future<void> _handleAudioRecording() async {
-    // TODO: Implementar gravação de áudio com o pacote 'record'
-    _showInfo('Gravação de áudio será implementada em breve');
+    try {
+      // Verifica se já está gravando
+      if (AudioService.isRecording) {
+        // Para a gravação
+        final audioFile = await AudioService.stopRecording();
+
+        if (audioFile != null) {
+          // Valida o áudio
+          if (!await AudioService.isValidAudio(audioFile)) {
+            _showError('Formato de áudio inválido');
+            return;
+          }
+
+          // Valida tamanho (max 5 MB)
+          if (!await AudioService.isAudioSizeValid(audioFile, maxSizeInMB: 5)) {
+            _showError('Áudio muito grande. Máximo: 5 MB');
+            return;
+          }
+
+          // Mostra o áudio no chat
+          final audioMessage = types.FileMessage(
+            author: _user,
+            createdAt: DateTime.now().millisecondsSinceEpoch,
+            id: _uuid.v4(),
+            name: audioFile.path.split('/').last,
+            size: await audioFile.length(),
+            uri: audioFile.path,
+            mimeType: 'audio/m4a',
+          );
+
+          _addMessage(audioMessage);
+
+          // Envia para o bot
+          _sendAudioToBot(audioFile);
+
+          _showInfo('Áudio gravado com sucesso');
+        }
+      } else {
+        // Inicia a gravação
+        final started = await AudioService.startRecording();
+
+        if (started) {
+          _showInfo('Gravando... Toque novamente para parar');
+        } else {
+          _showError('Não foi possível iniciar gravação');
+        }
+      }
+    } catch (e) {
+      _showError('Erro ao gravar áudio: $e');
+      // Cancela gravação em caso de erro
+      await AudioService.cancelRecording();
+    }
   }
 
   /// Mostra opções de anexo (imagem ou áudio)
