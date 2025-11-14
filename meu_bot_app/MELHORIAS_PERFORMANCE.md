@@ -689,6 +689,83 @@ AppLogger().onLog = (logEntry) {
 
 ---
 
+### 🐛 **Correções Críticas Implementadas**
+
+#### Integração N8N - Tratamento de Resposta Null ✅ CORRIGIDO
+
+**Problema Identificado**:
+- App crashava ao receber `null` do N8nService (quando offline)
+- Mensagens não apareciam no chat quando havia resposta
+- Falta de feedback quando mensagem ia para fila offline
+- Usuário não sabia se mensagem foi enviada ou ficou na fila
+
+**Solução Implementada**:
+- ✅ Verificação de `null` antes de processar resposta do N8N
+- ✅ Tratamento específico para erros de fila offline
+- ✅ Feedback visual diferenciado: "Mensagem será enviada quando conectar"
+- ✅ Tratamento de exceções melhorado
+- ✅ Aplicado em todos métodos: texto, imagem e áudio
+
+**Código corrigido** (lib/screens/chat_screen.dart):
+```dart
+Future<void> _sendTextToBot(String text) async {
+  try {
+    final response = await N8nService.sendMessage(text, _user.id);
+
+    // CORREÇÃO: Verifica se retornou null (fila offline)
+    if (response == null) {
+      _showInfo('Sem conexão. Mensagem será enviada quando conectar.');
+      return;
+    }
+
+    // Adiciona resposta do bot
+    _addBotResponse(response);
+  } catch (e) {
+    // CORREÇÃO: Trata erros de fila offline separadamente
+    if (e.toString().contains('Sem conexão') || e.toString().contains('fila')) {
+      _showInfo('Mensagem adicionada à fila offline');
+    } else {
+      _showError('Erro ao enviar mensagem: $e');
+    }
+  }
+}
+```
+
+**Antes vs Depois**:
+
+**ANTES (COM BUG):**
+```dart
+final response = await N8nService.sendMessage(text, _user.id);
+_addBotResponse(response); // ❌ Crash se response = null!
+```
+
+**DEPOIS (CORRIGIDO):**
+```dart
+final response = await N8nService.sendMessage(text, _user.id);
+
+if (response == null) {
+  _showInfo('Mensagem será enviada quando conectar.');
+  return; // ✅ Não tenta processar null
+}
+
+_addBotResponse(response); // ✅ Só processa se response não for null
+```
+
+**Benefícios da Correção**:
+- ✅ App não crasha mais quando offline
+- ✅ Mensagens do bot aparecem corretamente no chat
+- ✅ Usuário sabe quando mensagem está na fila
+- ✅ Feedback claro em todas situações
+- ✅ Tratamento robusto de erros
+
+**Situações tratadas**:
+1. **Envio bem-sucedido**: Resposta do bot aparece no chat
+2. **Sem conexão (detectada antes)**: "Mensagem será enviada quando conectar"
+3. **Perda de conexão durante envio**: "Mensagem adicionada à fila offline"
+4. **Erro genérico**: "Erro ao enviar mensagem: [detalhes]"
+
+---
+
 ## 🎨 MELHORIAS DE UX
 
 ### 11. **Skeleton Screens** 💀
@@ -715,11 +792,69 @@ Vibração ao enviar mensagem, erro, etc.
 
 ---
 
-### 14. **Pull to Refresh** 🔄
+### 14. **Pull to Refresh** 🔄 ✅ IMPLEMENTADO
 
-Puxar para baixo recarrega mensagens.
+**Problema**: Usuário não consegue atualizar mensagens manualmente.
+
+**Solução**:
+- Pull to Refresh implementado no chat
+- Recarrega mensagens do Supabase (força refresh sem cache)
+- Feedback visual durante atualização
+- Mensagem de sucesso após atualizar
 
 **Impacto**: ⭐⭐⭐ (Médio)
+
+**Status**: ✅ **IMPLEMENTADO**
+
+**Implementação**: ✅ **COMPLETA**
+- ✅ RefreshIndicator envolvendo o Chat widget
+- ✅ Método `_handleRefresh()` que força reload do Supabase
+- ✅ Feedback visual com mensagem de sucesso
+- ✅ useCache: false para garantir dados atualizados
+
+**Como funciona**:
+1. Usuário puxa para baixo na lista de mensagens
+2. Sistema força reload do Supabase (ignorando cache)
+3. Mensagens são atualizadas na tela
+4. Feedback visual: "Mensagens atualizadas!"
+
+**Código implementado** (lib/screens/chat_screen.dart):
+```dart
+/// Handle Pull to Refresh (recarrega mensagens)
+Future<void> _handleRefresh() async {
+  try {
+    final userId = SupabaseService.getCurrentUser()?.id;
+
+    // Força reload do Supabase (sem usar cache)
+    final messages = await MessageService.loadMessages(
+      userId,
+      limit: 50,
+      useCache: false, // Force fetch from Supabase
+    );
+
+    setState(() {
+      _messages.clear();
+      _messages.addAll(messages);
+    });
+
+    _showSuccess('Mensagens atualizadas!');
+  } catch (e) {
+    _showError('Erro ao atualizar mensagens');
+  }
+}
+
+// Na UI:
+RefreshIndicator(
+  onRefresh: _handleRefresh,
+  child: Chat(...),
+)
+```
+
+**Benefícios**:
+- Atualização manual quando necessário
+- Sincroniza dados mais recentes do servidor
+- UX melhorada com feedback visual
+- Padrão familiar para usuários móveis
 
 ---
 

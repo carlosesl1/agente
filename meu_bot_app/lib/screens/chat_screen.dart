@@ -114,6 +114,36 @@ class _ChatScreenState extends State<ChatScreen> {
     }
   }
 
+  /// Handle Pull to Refresh (recarrega mensagens)
+  Future<void> _handleRefresh() async {
+    try {
+      final userId = SupabaseService.getCurrentUser()?.id;
+
+      if (userId == null) {
+        _showError('Usuário não autenticado');
+        return;
+      }
+
+      // Força reload do Supabase (sem usar cache)
+      final messages = await MessageService.loadMessages(
+        userId,
+        limit: 50,
+        useCache: false, // Force fetch from Supabase
+      );
+
+      setState(() {
+        _messages.clear();
+        _messages.addAll(messages);
+      });
+
+      _showSuccess('Mensagens atualizadas!');
+      print('✓ ${_messages.length} mensagens recarregadas');
+    } catch (e) {
+      print('✗ Erro ao recarregar mensagens: $e');
+      _showError('Erro ao atualizar mensagens');
+    }
+  }
+
   /// Carrega mensagem de boas-vindas (apenas se não houver histórico)
   void _loadWelcomeMessage() {
     final welcomeMessage = types.TextMessage(
@@ -191,10 +221,21 @@ class _ChatScreenState extends State<ChatScreen> {
         _user.id,
       );
 
+      // Se retornou null, significa que foi para fila offline
+      if (response == null) {
+        _showInfo('Sem conexão. Mensagem será enviada quando conectar.');
+        return;
+      }
+
       // Adiciona resposta do bot
       _addBotResponse(response);
     } catch (e) {
-      _showError('Erro ao enviar mensagem: $e');
+      // Verifica se é erro de fila offline
+      if (e.toString().contains('Sem conexão') || e.toString().contains('fila')) {
+        _showInfo('Mensagem adicionada à fila offline');
+      } else {
+        _showError('Erro ao enviar mensagem: $e');
+      }
     } finally {
       setState(() {
         _isLoading = false;
@@ -217,11 +258,22 @@ class _ChatScreenState extends State<ChatScreen> {
         _user.id,
       );
 
+      // Se retornou null, significa que foi para fila offline
+      if (response == null) {
+        _showInfo('Sem conexão. Imagem será enviada quando conectar.');
+        return;
+      }
+
       // Adiciona resposta do bot
       _addBotResponse(response);
       _showSuccess('Imagem enviada com sucesso!');
     } catch (e) {
-      _showError('Erro ao enviar imagem: $e');
+      // Verifica se é erro de fila offline
+      if (e.toString().contains('Sem conexão') || e.toString().contains('fila')) {
+        _showInfo('Imagem adicionada à fila offline');
+      } else {
+        _showError('Erro ao enviar imagem: $e');
+      }
     } finally {
       setState(() {
         _isLoading = false;
@@ -244,11 +296,22 @@ class _ChatScreenState extends State<ChatScreen> {
         _user.id,
       );
 
+      // Se retornou null, significa que foi para fila offline
+      if (response == null) {
+        _showInfo('Sem conexão. Áudio será enviado quando conectar.');
+        return;
+      }
+
       // Adiciona resposta do bot
       _addBotResponse(response);
       _showSuccess('Áudio enviado com sucesso!');
     } catch (e) {
-      _showError('Erro ao enviar áudio: $e');
+      // Verifica se é erro de fila offline
+      if (e.toString().contains('Sem conexão') || e.toString().contains('fila')) {
+        _showInfo('Áudio adicionado à fila offline');
+      } else {
+        _showError('Erro ao enviar áudio: $e');
+      }
     } finally {
       setState(() {
         _isLoading = false;
@@ -652,46 +715,49 @@ class _ChatScreenState extends State<ChatScreen> {
                 ],
               ),
             ),
-          // Chat principal
+          // Chat principal com Pull to Refresh
           Expanded(
             child: _isLoadingHistory
                 ? _buildLoadingState()
                 : _messages.isEmpty
                     ? _buildEmptyState()
-                    : Chat(
-                    messages: _messages,
-                    onSendPressed: _handleSendPressed,
-                    onAttachmentPressed: _handleAttachmentPressed,
-                    user: _user,
-                    // Tema personalizado
-                    theme: DefaultChatTheme(
-                      // Cor das mensagens do usuário (azul)
-                      primaryColor: Colors.blue,
-                      // Cor das mensagens do bot (cinza)
-                      secondaryColor: Colors.grey[200]!,
-                      // Cor de fundo
-                      backgroundColor: Colors.white,
-                      // Cor do texto de entrada
-                      inputBackgroundColor: Colors.grey[100]!,
-                      inputTextColor: Colors.black87,
-                      // Bordas arredondadas
-                      messageBorderRadius: 20,
-                      // Padding das mensagens
-                      messageInsetsVertical: 12,
-                      messageInsetsHorizontal: 16,
-                    ),
-                    // Textos em português
-                    l10n: const ChatL10nPt(),
-                    // Desabilita swipe to reply (opcional)
-                    disableImageGallery: false,
-                    // Avatar customizado
-                    showUserAvatars: true,
-                    showUserNames: true,
-                    // Customiza a exibição de cada mensagem para incluir timestamp
-                    customDateHeaderText: (DateTime dateTime) {
-                      return timeago.format(dateTime, locale: 'pt_BR');
-                    },
-                  ),
+                    : RefreshIndicator(
+                        onRefresh: _handleRefresh,
+                        child: Chat(
+                          messages: _messages,
+                          onSendPressed: _handleSendPressed,
+                          onAttachmentPressed: _handleAttachmentPressed,
+                          user: _user,
+                          // Tema personalizado
+                          theme: DefaultChatTheme(
+                            // Cor das mensagens do usuário (azul)
+                            primaryColor: Colors.blue,
+                            // Cor das mensagens do bot (cinza)
+                            secondaryColor: Colors.grey[200]!,
+                            // Cor de fundo
+                            backgroundColor: Colors.white,
+                            // Cor do texto de entrada
+                            inputBackgroundColor: Colors.grey[100]!,
+                            inputTextColor: Colors.black87,
+                            // Bordas arredondadas
+                            messageBorderRadius: 20,
+                            // Padding das mensagens
+                            messageInsetsVertical: 12,
+                            messageInsetsHorizontal: 16,
+                          ),
+                          // Textos em português
+                          l10n: const ChatL10nPt(),
+                          // Desabilita swipe to reply (opcional)
+                          disableImageGallery: false,
+                          // Avatar customizado
+                          showUserAvatars: true,
+                          showUserNames: true,
+                          // Customiza a exibição de cada mensagem para incluir timestamp
+                          customDateHeaderText: (DateTime dateTime) {
+                            return timeago.format(dateTime, locale: 'pt_BR');
+                          },
+                        ),
+                      ),
           ),
         ],
       ),
