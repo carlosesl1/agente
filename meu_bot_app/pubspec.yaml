@@ -73,6 +73,9 @@ dependencies:
   # Formatação de timestamps (há X minutos, etc)
   timeago: ^3.7.0
 
+  # Compressão e manipulação de imagens
+  image: ^4.1.7
+
 dev_dependencies:
   flutter_test:
     sdk: flutter
