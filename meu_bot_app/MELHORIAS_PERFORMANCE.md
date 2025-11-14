@@ -128,39 +128,70 @@ image: ^4.1.7  # Compressão de imagens ✅ ADICIONADO
 
 ---
 
-### 5. **Cache de Mensagens em Memória** 💾
+### 5. **Cache de Mensagens em Memória** 💾 ✅ IMPLEMENTADO
 
 **Problema**: Buscar do Supabase toda vez é lento.
 
 **Solução**:
-- Cache local de últimas 100 mensagens
-- Só busca do banco se não estiver em cache
-- Invalidação inteligente
+- Cache em memória de últimas 100 mensagens
+- Persistência em SharedPreferences (sobrevive ao fechar app)
+- Carregamento instantâneo do cache
+- Sincronização com Supabase em background
+- Fallback automático se Supabase falhar
 
 **Impacto**: ⭐⭐⭐⭐ (Alto)
 
-**Implementação**:
+**Status**: ✅ **IMPLEMENTADO**
+
+**Dependências**:
+```yaml
+shared_preferences: ^2.3.3  # ✅ JÁ INSTALADO
+```
+
+**Implementação**: ✅ **COMPLETA**
+- ✅ `lib/services/message_cache_service.dart` - Serviço de cache completo (390 linhas)
+- ✅ `lib/services/message_service.dart` - Integração transparente com cache
+- ✅ Limite de 100 mensagens mais recentes
+- ✅ Persistência em disco (SharedPreferences)
+- ✅ Stream para UI reagir a mudanças
+- ✅ Pré-carregamento do Supabase em background
+- ✅ Sincronização inteligente
+- ✅ Busca por texto no cache
+- ✅ Paginação suportada
+
+**Como funciona**:
+1. Ao abrir app: Carrega cache do disco (instantâneo)
+2. Exibe mensagens imediatamente (UX rápida)
+3. Sincroniza com Supabase em background
+4. Ao salvar nova mensagem: Adiciona ao cache + Supabase
+5. Se Supabase falhar: Continua funcionando com cache
+
+**Logs de exemplo**:
+```
+🚀 Inicializando MessageCacheService...
+📂 Cache carregado do disco (87 mensagens)
+✅ MessageCacheService inicializado (87 mensagens em cache)
+⚡ Carregando 20 mensagens do cache (instantâneo)
+🔄 Sincronizando cache com Supabase...
+✅ 3 novas mensagens sincronizadas
+```
+
+**Inicialização** (adicionar no código após login):
 ```dart
-class MessageCache {
-  static final Map<String, List<types.Message>> _cache = {};
-  static const maxCacheSize = 100;
+// Após login bem-sucedido
+final userId = SupabaseService.currentUserId;
+await MessageService.initialize(userId);
+```
 
-  static List<types.Message>? get(String userId) {
-    return _cache[userId];
-  }
+**Acesso ao cache** (opcional para UI):
+```dart
+// Monitorar mudanças no cache
+MessageService.cache.cacheStream.listen((messages) {
+  print('Cache atualizado: ${messages.length} mensagens');
+});
 
-  static void set(String userId, List<types.Message> messages) {
-    _cache[userId] = messages.take(maxCacheSize).toList();
-  }
-
-  static void add(String userId, types.Message message) {
-    _cache[userId]?.insert(0, message);
-  }
-
-  static void clear(String userId) {
-    _cache.remove(userId);
-  }
-}
+// Buscar mensagens no cache
+final results = MessageService.cache.searchMessages('olá');
 ```
 
 ---
@@ -426,7 +457,7 @@ flutter build apk --obfuscate --split-debug-info=build/debug-info
 5. ✅ **Compressão de Imagens** (IMPLEMENTADO)
 
 ### 🟡 IMPORTANTE (Próxima Sprint):
-6. Cache de Mensagens
+6. ✅ **Cache de Mensagens** (IMPLEMENTADO)
 7. Lazy Loading
 8. Compressão de Áudio
 9. Logging Estruturado
@@ -452,8 +483,8 @@ Dia 1:
 
 Dia 2:
 - [x] Compressão de imagens ✅ IMPLEMENTADO
+- [x] Cache de mensagens ✅ IMPLEMENTADO
 - [ ] Compressão de áudio
-- [ ] Cache de mensagens
 
 Dia 3:
 - [ ] Lazy loading
