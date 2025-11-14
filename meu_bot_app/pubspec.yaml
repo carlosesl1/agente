@@ -76,6 +76,9 @@ dependencies:
   # Compressão e manipulação de imagens
   image: ^4.1.7
 
+  # Persistência local (para fila offline)
+  shared_preferences: ^2.3.3
+
 dev_dependencies:
   flutter_test:
     sdk: flutter

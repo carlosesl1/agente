@@ -2,8 +2,11 @@ import 'dart:convert';
 import 'dart:io';
 import 'package:dio/dio.dart';
 import 'package:http_parser/http_parser.dart';
+import 'package:uuid/uuid.dart';
 import '../config/app_config.dart';
 import 'retry_service.dart';
+import 'offline_queue_service.dart';
+import 'connectivity_service.dart';
 
 /// Serviço de integração com N8N
 ///
@@ -32,23 +35,120 @@ class N8nService {
     ),
   );
 
+  /// Serviço de fila offline
+  static final OfflineQueueService _offlineQueue = OfflineQueueService();
+
+  /// Serviço de conectividade
+  static final ConnectivityService _connectivity = ConnectivityService();
+
+  /// UUID generator
+  static const Uuid _uuid = Uuid();
+
+  /// Flag de inicialização
+  static bool _initialized = false;
+
+  /// Getter para acessar a fila offline (útil para UI mostrar status)
+  static OfflineQueueService get offlineQueue => _offlineQueue;
+
+  /// Getter para acessar conectividade
+  static ConnectivityService get connectivity => _connectivity;
+
+  /// Inicializa o N8nService com suporte offline
+  ///
+  /// Deve ser chamado no início do app
+  static Future<void> initialize() async {
+    if (_initialized) {
+      print('⚠️  N8nService já inicializado');
+      return;
+    }
+
+    print('🚀 Inicializando N8nService...');
+
+    // Inicializa conectividade
+    await _connectivity.initialize();
+
+    // Inicializa fila offline com callback de envio
+    await _offlineQueue.initialize(
+      sendCallback: _sendQueuedMessage,
+    );
+
+    _initialized = true;
+    print('✅ N8nService inicializado com suporte offline');
+  }
+
+  /// Callback para enviar mensagem da fila
+  static Future<bool> _sendQueuedMessage(QueuedMessage message) async {
+    try {
+      // Monta payload
+      final payload = {
+        'userId': message.userId,
+        'messageType': message.mediaType ?? 'text',
+        'content': message.mediaBase64 ?? message.content,
+        'timestamp': message.timestamp.toIso8601String(),
+      };
+
+      // Se tiver mídia, adiciona metadados
+      if (message.mediaBase64 != null) {
+        payload['metadata'] = {
+          'mimeType': message.mediaType == 'image' ? 'image/jpeg' : 'audio/m4a',
+        };
+      }
+
+      print('📤 Enviando mensagem da fila: ${message.id}');
+
+      final response = await _dio.post(
+        AppConfig.n8nWebhookUrl,
+        data: payload,
+      );
+
+      print('📥 Resposta recebida: ${response.statusCode}');
+
+      return response.statusCode == 200;
+    } catch (e) {
+      print('❌ Erro ao enviar mensagem da fila: $e');
+      return false;
+    }
+  }
+
   /// Envia uma mensagem de texto para o N8N
   ///
   /// [message] - Texto da mensagem
   /// [userId] - ID do usuário que está enviando
   ///
-  /// Retorna a resposta do bot
+  /// Retorna a resposta do bot ou adiciona à fila offline se sem conexão
   ///
   /// Exemplo de uso:
   /// ```dart
   /// try {
   ///   final response = await N8nService.sendMessage('Olá!', 'user123');
-  ///   print('Bot respondeu: ${response.text}');
+  ///   if (response != null) {
+  ///     print('Bot respondeu: ${response.text}');
+  ///   } else {
+  ///     print('Mensagem adicionada à fila offline');
+  ///   }
   /// } catch (e) {
   ///   print('Erro: $e');
   /// }
   /// ```
-  static Future<N8nResponse> sendMessage(String message, String userId) async {
+  static Future<N8nResponse?> sendMessage(String message, String userId) async {
+    // Verifica conectividade
+    if (!_connectivity.isOnline) {
+      print('📵 Sem conexão. Adicionando mensagem à fila offline...');
+
+      // Adiciona à fila
+      await _offlineQueue.addToQueue(
+        QueuedMessage(
+          id: _uuid.v4(),
+          userId: userId,
+          content: message,
+          timestamp: DateTime.now(),
+        ),
+      );
+
+      return null; // Retorna null indicando que foi para fila
+    }
+
+    // Se online, tenta enviar
     return RetryService.executeWithTimeout(
       operation: () async {
         try {
@@ -70,6 +170,23 @@ class N8nService {
 
           return N8nResponse.fromJson(response.data);
         } on DioException catch (e) {
+          // Se erro de conexão, adiciona à fila
+          if (e.type == DioExceptionType.connectionError ||
+              e.type == DioExceptionType.connectionTimeout) {
+            print('📵 Erro de conexão. Adicionando à fila offline...');
+
+            await _offlineQueue.addToQueue(
+              QueuedMessage(
+                id: _uuid.v4(),
+                userId: userId,
+                content: message,
+                timestamp: DateTime.now(),
+              ),
+            );
+
+            throw Exception('Sem conexão. Mensagem salva na fila');
+          }
+
           throw _handleDioError(e);
         } catch (e) {
           throw Exception('Erro ao enviar mensagem: $e');
@@ -88,22 +205,43 @@ class N8nService {
   /// [userId] - ID do usuário que está enviando
   ///
   /// A imagem é convertida para base64 e enviada no payload
+  /// ou adicionada à fila offline se sem conexão
   ///
   /// Exemplo de uso:
   /// ```dart
   /// try {
   ///   final file = File('/path/to/image.jpg');
   ///   final response = await N8nService.sendImage(file, 'user123');
-  ///   print('Bot respondeu: ${response.text}');
+  ///   if (response != null) {
+  ///     print('Bot respondeu: ${response.text}');
+  ///   }
   /// } catch (e) {
   ///   print('Erro: $e');
   /// }
   /// ```
-  static Future<N8nResponse> sendImage(File imageFile, String userId) async {
+  static Future<N8nResponse?> sendImage(File imageFile, String userId) async {
     try {
       // Lê o arquivo e converte para base64
       final bytes = await imageFile.readAsBytes();
       final base64Image = base64Encode(bytes);
+
+      // Verifica conectividade
+      if (!_connectivity.isOnline) {
+        print('📵 Sem conexão. Adicionando imagem à fila offline...');
+
+        await _offlineQueue.addToQueue(
+          QueuedMessage(
+            id: _uuid.v4(),
+            userId: userId,
+            content: 'Imagem',
+            mediaBase64: base64Image,
+            mediaType: 'image',
+            timestamp: DateTime.now(),
+          ),
+        );
+
+        return null;
+      }
 
       final payload = {
         'userId': userId,
@@ -127,6 +265,28 @@ class N8nService {
 
       return N8nResponse.fromJson(response.data);
     } on DioException catch (e) {
+      // Se erro de conexão, adiciona à fila
+      if (e.type == DioExceptionType.connectionError ||
+          e.type == DioExceptionType.connectionTimeout) {
+        final bytes = await imageFile.readAsBytes();
+        final base64Image = base64Encode(bytes);
+
+        print('📵 Erro de conexão. Adicionando imagem à fila offline...');
+
+        await _offlineQueue.addToQueue(
+          QueuedMessage(
+            id: _uuid.v4(),
+            userId: userId,
+            content: 'Imagem',
+            mediaBase64: base64Image,
+            mediaType: 'image',
+            timestamp: DateTime.now(),
+          ),
+        );
+
+        throw Exception('Sem conexão. Imagem salva na fila');
+      }
+
       throw _handleDioError(e);
     } catch (e) {
       throw Exception('Erro ao enviar imagem: $e');
@@ -176,22 +336,43 @@ class N8nService {
   /// [userId] - ID do usuário que está enviando
   ///
   /// O áudio é convertido para base64 e enviado no payload
+  /// ou adicionado à fila offline se sem conexão
   ///
   /// Exemplo de uso:
   /// ```dart
   /// try {
   ///   final file = File('/path/to/audio.m4a');
   ///   final response = await N8nService.sendAudio(file, 'user123');
-  ///   print('Bot respondeu: ${response.text}');
+  ///   if (response != null) {
+  ///     print('Bot respondeu: ${response.text}');
+  ///   }
   /// } catch (e) {
   ///   print('Erro: $e');
   /// }
   /// ```
-  static Future<N8nResponse> sendAudio(File audioFile, String userId) async {
+  static Future<N8nResponse?> sendAudio(File audioFile, String userId) async {
     try {
       // Lê o arquivo e converte para base64
       final bytes = await audioFile.readAsBytes();
       final base64Audio = base64Encode(bytes);
+
+      // Verifica conectividade
+      if (!_connectivity.isOnline) {
+        print('📵 Sem conexão. Adicionando áudio à fila offline...');
+
+        await _offlineQueue.addToQueue(
+          QueuedMessage(
+            id: _uuid.v4(),
+            userId: userId,
+            content: 'Áudio',
+            mediaBase64: base64Audio,
+            mediaType: 'audio',
+            timestamp: DateTime.now(),
+          ),
+        );
+
+        return null;
+      }
 
       final payload = {
         'userId': userId,
@@ -216,6 +397,28 @@ class N8nService {
 
       return N8nResponse.fromJson(response.data);
     } on DioException catch (e) {
+      // Se erro de conexão, adiciona à fila
+      if (e.type == DioExceptionType.connectionError ||
+          e.type == DioExceptionType.connectionTimeout) {
+        final bytes = await audioFile.readAsBytes();
+        final base64Audio = base64Encode(bytes);
+
+        print('📵 Erro de conexão. Adicionando áudio à fila offline...');
+
+        await _offlineQueue.addToQueue(
+          QueuedMessage(
+            id: _uuid.v4(),
+            userId: userId,
+            content: 'Áudio',
+            mediaBase64: base64Audio,
+            mediaType: 'audio',
+            timestamp: DateTime.now(),
+          ),
+        );
+
+        throw Exception('Sem conexão. Áudio salvo na fila');
+      }
+
       throw _handleDioError(e);
     } catch (e) {
       throw Exception('Erro ao enviar áudio: $e');

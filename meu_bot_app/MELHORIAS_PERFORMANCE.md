@@ -206,44 +206,61 @@ class MessageCache {
 
 ---
 
-### 9. **Offline Mode** 📴
+### 9. **Offline Mode** 📴 ✅ IMPLEMENTADO
 
 **Problema**: Sem internet, app não funciona.
 
 **Solução**:
 - Mensagens ficam em fila local
 - Envio automático quando voltar internet
-- Indicador de "Pendente"
+- Indicador de "Pendente/Enviando/Enviado"
+- Persistência em SharedPreferences
 
 **Impacto**: ⭐⭐⭐⭐⭐ (Crítico)
 
-**Implementação**:
+**Status**: ✅ **IMPLEMENTADO**
+
+**Dependências**:
+```yaml
+connectivity_plus: ^6.0.5  # ✅ JÁ INSTALADO
+shared_preferences: ^2.3.3  # ✅ ADICIONADO
+```
+
+**Implementação**: ✅ **COMPLETA**
+- ✅ `lib/services/connectivity_service.dart` - Monitoramento de conectividade com singleton
+- ✅ `lib/services/offline_queue_service.dart` - Fila offline com persistência
+- ✅ `lib/services/n8n_service.dart` - Integração com fila offline
+- ✅ Callbacks automáticos quando volta online
+- ✅ Retry automático (até 3 tentativas)
+- ✅ Status tracking: pending → sending → sent/failed
+- ✅ Persistência sobrevive ao fechamento do app
+
+**Como funciona**:
+1. Usuário envia mensagem/áudio/imagem
+2. N8nService verifica conectividade
+3. Se OFFLINE: Adiciona à fila local (persistida)
+4. Se ONLINE: Tenta enviar normalmente
+5. Se ERRO de conexão durante envio: Adiciona à fila
+6. Quando volta online: Processa automaticamente toda a fila
+7. UI pode monitorar via `N8nService.offlineQueue.queueStream`
+
+**Logs de exemplo**:
+```
+📵 Sem conexão. Adicionando mensagem à fila offline...
+➕ Mensagem adicionada à fila: 123e4567-e89b-12d3-a456-426614174000
+💾 Fila salva (1 mensagens)
+✅ Conexão estabelecida: [ConnectivityResult.wifi]
+🔄 Voltou online! Executando 1 callback(s)...
+🔄 Conectividade restaurada, processando fila offline...
+📤 Processando 1 mensagens da fila...
+📨 Enviando mensagem 123e4567-e89b-12d3-a456-426614174000 (tentativa 1)...
+✅ Mensagem 123e4567-e89b-12d3-a456-426614174000 enviada com sucesso
+```
+
+**Inicialização** (adicionar no `main.dart`):
 ```dart
-class OfflineQueue {
-  static final List<Map<String, dynamic>> _queue = [];
-
-  static void add(types.Message message, String userId) {
-    _queue.add({
-      'message': message,
-      'userId': userId,
-      'timestamp': DateTime.now(),
-    });
-  }
-
-  static Future<void> processPending() async {
-    final isOnline = await ConnectivityService.isConnected();
-    if (!isOnline) return;
-
-    for (var item in _queue) {
-      try {
-        await MessageService.saveMessage(item['message'], item['userId']);
-        _queue.remove(item);
-      } catch (e) {
-        break; // Para na primeira falha
-      }
-    }
-  }
-}
+// Inicializar N8nService no início do app
+await N8nService.initialize();
 ```
 
 ---
@@ -405,7 +422,7 @@ flutter build apk --obfuscate --split-debug-info=build/debug-info
 1. ✅ Error Handling Robusto
 2. ✅ Retry Logic N8N
 3. ✅ Timeout Configurável (já tem)
-4. ⏳ Offline Mode
+4. ✅ **Offline Mode** (IMPLEMENTADO)
 5. ✅ **Compressão de Imagens** (IMPLEMENTADO)
 
 ### 🟡 IMPORTANTE (Próxima Sprint):
@@ -429,9 +446,9 @@ flutter build apk --obfuscate --split-debug-info=build/debug-info
 ### Fase 1 (AGORA) - Estabilidade Core:
 ```
 Dia 1:
-- [x] Error handling robusto
-- [x] Retry logic com exponential backoff
-- [ ] Offline queue
+- [x] Error handling robusto ✅
+- [x] Retry logic com exponential backoff ✅
+- [x] Offline queue ✅ IMPLEMENTADO
 
 Dia 2:
 - [x] Compressão de imagens ✅ IMPLEMENTADO
