@@ -45,7 +45,7 @@ dependencies:
   image_picker: ^1.1.2
 
   # Gravação de áudio
-  record: ^5.1.2
+  record: ^5.2.1
 
   # Requisições HTTP
   dio: ^5.7.0

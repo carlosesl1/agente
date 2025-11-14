@@ -95,10 +95,11 @@ class MessageService {
     try {
       final response = await SupabaseService.client
           .from('messages')
-          .select('id', const FetchOptions(count: CountOption.exact))
+          .select()
           .eq('user_id', userId);
 
-      return response.count ?? 0;
+      final List<dynamic> data = response as List<dynamic>;
+      return data.length;
     } catch (e) {
       print('✗ Erro ao contar mensagens: $e');
       return 0;
