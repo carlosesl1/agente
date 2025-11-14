@@ -28,8 +28,8 @@ class AppConfig {
   ///
   /// Formato: https://[seu-projeto].supabase.co
   ///
-  /// TODO: Substituir com a URL real do seu projeto Supabase
-  static const String supabaseUrl = 'https://sua-url-aqui.supabase.co';
+  /// ✅ CONFIGURADO
+  static const String supabaseUrl = 'https://lzcmklrbgtqvcgpsqjkm.supabase.co';
 
   /// Chave pública (anon key) do Supabase
   ///
@@ -41,8 +41,8 @@ class AppConfig {
   ///
   /// NOTA: Esta é uma chave pública segura para uso no cliente
   ///
-  /// TODO: Substituir com a chave anon do seu projeto Supabase
-  static const String supabaseAnonKey = 'sua-chave-anon-aqui';
+  /// ✅ CONFIGURADO
+  static const String supabaseAnonKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imx6Y21rbHJiZ3RxdmNncHNxamttIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjE0NDMxNjcsImV4cCI6MjA3NzAxOTE2N30.kfX1UCaONADyJV3jOYYC8CZbcrzssz18y4oqc_Qhr8I';
 
   // ============================================================================
   // N8N CONFIGURATION
@@ -76,8 +76,8 @@ class AppConfig {
   ///   }
   /// }
   ///
-  /// TODO: Substituir com a URL do seu webhook N8N
-  static const String n8nWebhookUrl = 'https://seu-webhook.n8n.com/webhook/bot';
+  /// ✅ CONFIGURADO
+  static const String n8nWebhookUrl = 'https://n8n.noirdigital.com.br/webhook/agente-app';
 
   // ============================================================================
   // FIREBASE CONFIGURATION
