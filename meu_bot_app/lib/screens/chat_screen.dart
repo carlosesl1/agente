@@ -10,6 +10,7 @@ import '../services/media_service.dart';
 import '../services/audio_service.dart';
 import '../services/connectivity_service.dart';
 import '../services/message_service.dart';
+import '../widgets/skeleton_loading.dart';
 import 'login_screen.dart';
 
 /// Tela principal de chat
@@ -683,37 +684,12 @@ class _ChatScreenState extends State<ChatScreen> {
       ),
       body: Column(
         children: [
-          // Indicador "digitando..." do bot
+          // Indicador "digitando..." do bot com skeleton
           if (_botIsTyping)
             Container(
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-              color: Colors.grey[100],
-              child: Row(
-                children: [
-                  CircleAvatar(
-                    radius: 12,
-                    backgroundImage: NetworkImage(_bot.imageUrl ?? ''),
-                  ),
-                  const SizedBox(width: 8),
-                  const Text(
-                    'Bot está digitando...',
-                    style: TextStyle(
-                      fontSize: 12,
-                      fontStyle: FontStyle.italic,
-                      color: Colors.grey,
-                    ),
-                  ),
-                  const SizedBox(width: 8),
-                  SizedBox(
-                    width: 16,
-                    height: 16,
-                    child: CircularProgressIndicator(
-                      strokeWidth: 2,
-                      valueColor: AlwaysStoppedAnimation<Color>(Colors.grey[400]!),
-                    ),
-                  ),
-                ],
-              ),
+              padding: const EdgeInsets.symmetric(vertical: 8),
+              color: Colors.grey[50],
+              child: const BotTypingSkeletonLoading(),
             ),
           // Chat principal com Pull to Refresh
           Expanded(
@@ -764,23 +740,10 @@ class _ChatScreenState extends State<ChatScreen> {
     );
   }
 
-  /// Widget para o estado de carregamento inicial
+  /// Widget para o estado de carregamento inicial (com skeleton screens)
   Widget _buildLoadingState() {
-    return Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          const CircularProgressIndicator(),
-          const SizedBox(height: 16),
-          Text(
-            'Carregando conversas...',
-            style: TextStyle(
-              fontSize: 16,
-              color: Colors.grey[600],
-            ),
-          ),
-        ],
-      ),
+    return const ChatHistorySkeletonLoading(
+      messageCount: 6, // Mostra 6 mensagens skeleton
     );
   }
 
