@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "628933941346",
+    "project_id": "agente-app-16c01",
+    "storage_bucket": "agente-app-16c01.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:628933941346:android:d9840d81794666e7e2993b",
+        "android_client_info": {
+          "package_name": "com.example.meu_bot_app"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDfbhTqc-EhzrlQnPZ-BC_e-RJKqbt2GkQ"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
