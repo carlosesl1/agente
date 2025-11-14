@@ -2,29 +2,28 @@ import 'dart:convert';
 import 'dart:io';
 import 'package:dio/dio.dart';
 import 'package:http_parser/http_parser.dart';
-import '../models/message_model.dart';
+import '../config/app_config.dart';
 
 /// Serviço de integração com N8N
 ///
 /// Responsável por enviar mensagens ao webhook do N8N e processar respostas
+///
+/// 📝 INSTRUÇÕES PARA CONFIGURAR:
+/// 1. Acesse seu N8N
+/// 2. Crie um workflow com um nó "Webhook"
+/// 3. Configure para aceitar POST requests
+/// 4. Copie a URL do webhook (Production URL)
+/// 5. Abra lib/config/app_config.dart
+/// 6. Substitua o valor de n8nWebhookUrl
+///
+/// ⚠️ TODO: Configure a URL do webhook em lib/config/app_config.dart
 class N8nService {
-  // ========== CONFIGURE SUA URL DO WEBHOOK AQUI ==========
-  // TODO: Substituir com a URL real do seu webhook N8N
-  //
-  // ONDE ENCONTRAR:
-  // 1. Acesse seu N8N
-  // 2. Crie um workflow com um nó "Webhook"
-  // 3. Copie a URL do webhook
-  // 4. Cole abaixo (exemplo: https://seu-n8n.com/webhook/chat)
-  static const String WEBHOOK_URL = 'https://seu-n8n.com/webhook/chat';
-  // =======================================================
-
   /// Cliente HTTP Dio para requisições
   static final Dio _dio = Dio(
     BaseOptions(
-      connectTimeout: const Duration(seconds: 30),
-      receiveTimeout: const Duration(seconds: 30),
-      sendTimeout: const Duration(seconds: 30),
+      connectTimeout: Duration(seconds: AppConfig.httpTimeout),
+      receiveTimeout: Duration(seconds: AppConfig.httpTimeout),
+      sendTimeout: Duration(seconds: AppConfig.httpTimeout),
       headers: {
         'Content-Type': 'application/json',
         'Accept': 'application/json',
@@ -60,7 +59,7 @@ class N8nService {
       print('📤 Enviando mensagem para N8N: $message');
 
       final response = await _dio.post(
-        WEBHOOK_URL,
+        AppConfig.n8nWebhookUrl,
         data: payload,
       );
 
@@ -111,7 +110,7 @@ class N8nService {
       print('📤 Enviando imagem para N8N (${bytes.length} bytes)');
 
       final response = await _dio.post(
-        WEBHOOK_URL,
+        AppConfig.n8nWebhookUrl,
         data: payload,
       );
 
@@ -148,7 +147,7 @@ class N8nService {
       print('📤 Enviando imagem (multipart) para N8N');
 
       final response = await _dio.post(
-        WEBHOOK_URL,
+        AppConfig.n8nWebhookUrl,
         data: formData,
       );
 
@@ -200,7 +199,7 @@ class N8nService {
       print('📤 Enviando áudio para N8N (${bytes.length} bytes)');
 
       final response = await _dio.post(
-        WEBHOOK_URL,
+        AppConfig.n8nWebhookUrl,
         data: payload,
       );
 
@@ -237,7 +236,7 @@ class N8nService {
       print('📤 Enviando áudio (multipart) para N8N');
 
       final response = await _dio.post(
-        WEBHOOK_URL,
+        AppConfig.n8nWebhookUrl,
         data: formData,
       );
 
@@ -299,7 +298,7 @@ class N8nService {
       print('🔍 Testando conexão com N8N...');
 
       final response = await _dio.post(
-        WEBHOOK_URL,
+        AppConfig.n8nWebhookUrl,
         data: {
           'userId': 'test',
           'messageType': 'text',

@@ -13,13 +13,14 @@ void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
   // ========== INICIALIZAÇÃO DO SUPABASE ==========
-  // Antes de configurar suas credenciais no SupabaseService,
-  // este código vai tentar conectar com os valores placeholder.
+  // 📝 TODO: Configure suas credenciais do Supabase
   //
   // PASSOS PARA CONFIGURAR:
-  // 1. Abra lib/services/supabase_service.dart
-  // 2. Localize as constantes SUPABASE_URL e SUPABASE_ANON_KEY
+  // 1. Abra lib/config/app_config.dart
+  // 2. Localize supabaseUrl e supabaseAnonKey
   // 3. Substitua pelos valores reais do seu projeto Supabase
+  //
+  // Consulte o README.md para instruções detalhadas
   // ================================================
 
   try {
@@ -27,19 +28,20 @@ void main() async {
     print('✓ Supabase inicializado com sucesso');
   } catch (e) {
     print('✗ Erro ao inicializar Supabase: $e');
-    print('Verifique suas credenciais em lib/services/supabase_service.dart');
+    print('📝 Configure suas credenciais em lib/config/app_config.dart');
   }
 
   // ========== INICIALIZAÇÃO DO FIREBASE ==========
-  // Antes de usar, você precisa adicionar google-services.json
-  // Instruções detalhadas em: CONFIGURACAO_FIREBASE.md
+  // 📝 TODO: Adicionar google-services.json do Firebase
   //
   // PASSOS PARA CONFIGURAR:
   // 1. Acesse Firebase Console (https://console.firebase.google.com)
   // 2. Crie/selecione seu projeto
-  // 3. Adicione um app Android
+  // 3. Adicione um app Android (package: com.example.meu_bot_app)
   // 4. Baixe o google-services.json
   // 5. Coloque em: meu_bot_app/android/app/google-services.json
+  //
+  // Consulte o README.md e CONFIGURACAO_FIREBASE.md para detalhes
   // ================================================
 
   // Registra handler de notificações em background

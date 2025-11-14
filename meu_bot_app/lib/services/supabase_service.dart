@@ -1,28 +1,35 @@
 import 'package:supabase_flutter/supabase_flutter.dart';
+import '../config/app_config.dart';
 
 /// Serviço responsável pela autenticação e integração com Supabase
 ///
-/// INSTRUÇÕES PARA CONFIGURAR SUAS CREDENCIAIS:
+/// 📝 INSTRUÇÕES PARA CONFIGURAR SUAS CREDENCIAIS:
 /// 1. Acesse seu projeto no Supabase (https://supabase.com/dashboard)
 /// 2. Vá em Settings > API
 /// 3. Copie a URL do projeto e a chave anon/public
-/// 4. Substitua os valores abaixo nas constantes SUPABASE_URL e SUPABASE_ANON_KEY
+/// 4. Abra lib/config/app_config.dart
+/// 5. Substitua os valores de supabaseUrl e supabaseAnonKey
+///
+/// ⚠️ TODO: Configure suas credenciais em lib/config/app_config.dart
 class SupabaseService {
-  // ========== CONFIGURE SUAS CREDENCIAIS AQUI ==========
-  // TODO: Substituir com suas credenciais reais do Supabase
-  static const String SUPABASE_URL = 'https://seu-projeto.supabase.co';
-  static const String SUPABASE_ANON_KEY = 'sua-chave-anonima-aqui';
-  // =====================================================
-
   /// Cliente Supabase singleton
   static final SupabaseClient _client = Supabase.instance.client;
 
   /// Inicializa o Supabase
   /// Deve ser chamado antes de runApp() no main.dart
   static Future<void> initialize() async {
+    // Valida se as configurações foram preenchidas
+    if (!AppConfig.isSupabaseConfigured) {
+      throw Exception(
+        'Supabase não configurado!\n\n'
+        'Configure suas credenciais em lib/config/app_config.dart\n'
+        'Consulte o README.md para instruções detalhadas.',
+      );
+    }
+
     await Supabase.initialize(
-      url: SUPABASE_URL,
-      anonKey: SUPABASE_ANON_KEY,
+      url: AppConfig.supabaseUrl,
+      anonKey: AppConfig.supabaseAnonKey,
       authOptions: const FlutterAuthClientOptions(
         authFlowType: AuthFlowType.pkce, // Recomendado para apps mobile
       ),
