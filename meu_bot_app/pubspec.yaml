@@ -67,6 +67,12 @@ dependencies:
   # Gerenciamento de permissões
   permission_handler: ^11.3.1
 
+  # Verificação de conectividade
+  connectivity_plus: ^6.0.5
+
+  # Formatação de timestamps (há X minutos, etc)
+  timeago: ^3.7.0
+
 dev_dependencies:
   flutter_test:
     sdk: flutter

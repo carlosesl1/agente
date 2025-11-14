@@ -2,8 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'services/supabase_service.dart';
 import 'services/notification_service.dart';
-import 'screens/login_screen.dart';
-import 'screens/chat_screen.dart';
+import 'screens/splash_screen.dart';
 
 /// Ponto de entrada da aplicação
 ///
@@ -76,82 +75,9 @@ class MyApp extends StatelessWidget {
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.blue),
         useMaterial3: true,
       ),
-      // Tela inicial que verifica autenticação
-      home: const AuthGate(),
+      // Tela inicial: Splash Screen com animação
+      // O SplashScreen verifica autenticação e redireciona automaticamente
+      home: const SplashScreen(),
     );
-  }
-}
-
-/// Widget que verifica se o usuário está autenticado
-/// e redireciona para a tela apropriada
-///
-/// - Se autenticado: vai para ChatScreen
-/// - Se não autenticado: vai para LoginScreen
-class AuthGate extends StatefulWidget {
-  const AuthGate({super.key});
-
-  @override
-  State<AuthGate> createState() => _AuthGateState();
-}
-
-class _AuthGateState extends State<AuthGate> {
-  bool _isLoading = true;
-  bool _isAuthenticated = false;
-
-  @override
-  void initState() {
-    super.initState();
-    _checkAuthentication();
-  }
-
-  /// Verifica se existe uma sessão ativa (persistência automática)
-  Future<void> _checkAuthentication() async {
-    await Future.delayed(const Duration(milliseconds: 500)); // Delay para splash
-
-    // Verifica se há usuário logado
-    final isAuth = SupabaseService.isAuthenticated();
-    final currentUser = SupabaseService.getCurrentUser();
-
-    if (isAuth && currentUser != null) {
-      print('✓ Usuário autenticado: ${currentUser.email}');
-    } else {
-      print('✗ Nenhum usuário autenticado');
-    }
-
-    setState(() {
-      _isAuthenticated = isAuth;
-      _isLoading = false;
-    });
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    // Mostra tela de loading enquanto verifica autenticação
-    if (_isLoading) {
-      return const Scaffold(
-        body: Center(
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              CircularProgressIndicator(),
-              SizedBox(height: 16),
-              Text(
-                'Verificando autenticação...',
-                style: TextStyle(fontSize: 16),
-              ),
-            ],
-          ),
-        ),
-      );
-    }
-
-    // Redireciona conforme estado de autenticação
-    if (_isAuthenticated) {
-      // Usa a tela de chat real
-      return const ChatScreen();
-    } else {
-      // Usa a tela de login real
-      return const LoginScreen();
-    }
   }
 }

@@ -3,11 +3,12 @@ import 'package:flutter/material.dart';
 import 'package:flutter_chat_ui/flutter_chat_ui.dart';
 import 'package:flutter_chat_types/flutter_chat_types.dart' as types;
 import 'package:uuid/uuid.dart';
+import 'package:timeago/timeago.dart' as timeago;
 import '../services/supabase_service.dart';
 import '../services/n8n_service.dart';
 import '../services/media_service.dart';
 import '../services/audio_service.dart';
-import '../models/message_model.dart';
+import '../services/connectivity_service.dart';
 import 'login_screen.dart';
 
 /// Tela principal de chat
@@ -36,11 +37,20 @@ class _ChatScreenState extends State<ChatScreen> {
   // Loading state
   bool _isLoading = false;
 
+  // Bot está digitando
+  bool _botIsTyping = false;
+
   @override
   void initState() {
     super.initState();
     _initializeUsers();
     _loadWelcomeMessage();
+    _configureTimeago();
+  }
+
+  /// Configura formatação de timestamps em português
+  void _configureTimeago() {
+    timeago.setLocaleMessages('pt_BR', timeago.PtBrMessages());
   }
 
   /// Inicializa os usuários (você e o bot)
@@ -50,12 +60,14 @@ class _ChatScreenState extends State<ChatScreen> {
     _user = types.User(
       id: currentUser?.id ?? 'user',
       firstName: currentUser?.email?.split('@')[0] ?? 'Você',
+      imageUrl: 'https://ui-avatars.com/api/?name=${currentUser?.email?.split('@')[0] ?? 'User'}&background=2196F3&color=fff',
     );
 
     _bot = const types.User(
       id: 'bot',
       firstName: 'Bot',
       lastName: 'Assistente',
+      imageUrl: 'https://ui-avatars.com/api/?name=Bot&background=9E9E9E&color=fff&bold=true',
     );
   }
 
@@ -73,8 +85,25 @@ class _ChatScreenState extends State<ChatScreen> {
     });
   }
 
+  /// Verifica se há conexão com internet
+  Future<bool> _checkInternetConnection() async {
+    final isConnected = await ConnectivityService.isConnected();
+
+    if (!isConnected) {
+      _showError('Sem conexão com a internet. Verifique sua conexão e tente novamente.');
+      return false;
+    }
+
+    return true;
+  }
+
   /// Chamado quando o usuário envia uma mensagem de texto
-  void _handleSendPressed(types.PartialText message) {
+  Future<void> _handleSendPressed(types.PartialText message) async {
+    // Valida conexão com internet
+    if (!await _checkInternetConnection()) {
+      return;
+    }
+
     final textMessage = types.TextMessage(
       author: _user,
       createdAt: DateTime.now().millisecondsSinceEpoch,
@@ -83,7 +112,7 @@ class _ChatScreenState extends State<ChatScreen> {
     );
 
     _addMessage(textMessage);
-    _sendTextToBot(message.text);
+    await _sendTextToBot(message.text);
   }
 
   /// Adiciona uma mensagem à lista
@@ -97,6 +126,7 @@ class _ChatScreenState extends State<ChatScreen> {
   Future<void> _sendTextToBot(String text) async {
     setState(() {
       _isLoading = true;
+      _botIsTyping = true; // Bot está processando
     });
 
     try {
@@ -113,6 +143,7 @@ class _ChatScreenState extends State<ChatScreen> {
     } finally {
       setState(() {
         _isLoading = false;
+        _botIsTyping = false; // Bot terminou de digitar
       });
     }
   }
@@ -121,6 +152,7 @@ class _ChatScreenState extends State<ChatScreen> {
   Future<void> _sendImageToBot(File imageFile) async {
     setState(() {
       _isLoading = true;
+      _botIsTyping = true;
     });
 
     try {
@@ -132,11 +164,13 @@ class _ChatScreenState extends State<ChatScreen> {
 
       // Adiciona resposta do bot
       _addBotResponse(response);
+      _showSuccess('Imagem enviada com sucesso!');
     } catch (e) {
       _showError('Erro ao enviar imagem: $e');
     } finally {
       setState(() {
         _isLoading = false;
+        _botIsTyping = false;
       });
     }
   }
@@ -145,6 +179,7 @@ class _ChatScreenState extends State<ChatScreen> {
   Future<void> _sendAudioToBot(File audioFile) async {
     setState(() {
       _isLoading = true;
+      _botIsTyping = true;
     });
 
     try {
@@ -156,11 +191,13 @@ class _ChatScreenState extends State<ChatScreen> {
 
       // Adiciona resposta do bot
       _addBotResponse(response);
+      _showSuccess('Áudio enviado com sucesso!');
     } catch (e) {
       _showError('Erro ao enviar áudio: $e');
     } finally {
       setState(() {
         _isLoading = false;
+        _botIsTyping = false;
       });
     }
   }
@@ -226,6 +263,26 @@ class _ChatScreenState extends State<ChatScreen> {
         content: Text(message),
         backgroundColor: Colors.blue,
         behavior: SnackBarBehavior.floating,
+      ),
+    );
+  }
+
+  /// Mostra mensagem de sucesso
+  void _showSuccess(String message) {
+    if (!mounted) return;
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Row(
+          children: [
+            const Icon(Icons.check_circle, color: Colors.white),
+            const SizedBox(width: 8),
+            Expanded(child: Text(message)),
+          ],
+        ),
+        backgroundColor: Colors.green,
+        behavior: SnackBarBehavior.floating,
+        duration: const Duration(seconds: 2),
       ),
     );
   }
@@ -506,35 +563,117 @@ class _ChatScreenState extends State<ChatScreen> {
           ),
         ],
       ),
-      body: Chat(
-        messages: _messages,
-        onSendPressed: _handleSendPressed,
-        onAttachmentPressed: _handleAttachmentPressed,
-        user: _user,
-        // Tema personalizado
-        theme: DefaultChatTheme(
-          // Cor das mensagens do usuário (azul)
-          primaryColor: Colors.blue,
-          // Cor das mensagens do bot (cinza)
-          secondaryColor: Colors.grey[200]!,
-          // Cor de fundo
-          backgroundColor: Colors.white,
-          // Cor do texto de entrada
-          inputBackgroundColor: Colors.grey[100]!,
-          inputTextColor: Colors.black87,
-          // Bordas arredondadas
-          messageBorderRadius: 20,
-          // Padding das mensagens
-          messageInsetsVertical: 12,
-          messageInsetsHorizontal: 16,
+      body: Column(
+        children: [
+          // Indicador "digitando..." do bot
+          if (_botIsTyping)
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+              color: Colors.grey[100],
+              child: Row(
+                children: [
+                  CircleAvatar(
+                    radius: 12,
+                    backgroundImage: NetworkImage(_bot.imageUrl ?? ''),
+                  ),
+                  const SizedBox(width: 8),
+                  const Text(
+                    'Bot está digitando...',
+                    style: TextStyle(
+                      fontSize: 12,
+                      fontStyle: FontStyle.italic,
+                      color: Colors.grey,
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  SizedBox(
+                    width: 16,
+                    height: 16,
+                    child: CircularProgressIndicator(
+                      strokeWidth: 2,
+                      valueColor: AlwaysStoppedAnimation<Color>(Colors.grey[400]!),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          // Chat principal
+          Expanded(
+            child: _messages.isEmpty
+                ? _buildEmptyState()
+                : Chat(
+                    messages: _messages,
+                    onSendPressed: _handleSendPressed,
+                    onAttachmentPressed: _handleAttachmentPressed,
+                    user: _user,
+                    // Tema personalizado
+                    theme: DefaultChatTheme(
+                      // Cor das mensagens do usuário (azul)
+                      primaryColor: Colors.blue,
+                      // Cor das mensagens do bot (cinza)
+                      secondaryColor: Colors.grey[200]!,
+                      // Cor de fundo
+                      backgroundColor: Colors.white,
+                      // Cor do texto de entrada
+                      inputBackgroundColor: Colors.grey[100]!,
+                      inputTextColor: Colors.black87,
+                      // Bordas arredondadas
+                      messageBorderRadius: 20,
+                      // Padding das mensagens
+                      messageInsetsVertical: 12,
+                      messageInsetsHorizontal: 16,
+                    ),
+                    // Textos em português
+                    l10n: const ChatL10nPt(),
+                    // Desabilita swipe to reply (opcional)
+                    disableImageGallery: false,
+                    // Avatar customizado
+                    showUserAvatars: true,
+                    showUserNames: true,
+                    // Customiza a exibição de cada mensagem para incluir timestamp
+                    customDateHeaderText: (DateTime dateTime) {
+                      return timeago.format(dateTime, locale: 'pt_BR');
+                    },
+                  ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  /// Widget para o estado vazio (sem mensagens)
+  Widget _buildEmptyState() {
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.all(32.0),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(
+              Icons.chat_bubble_outline,
+              size: 80,
+              color: Colors.grey[300],
+            ),
+            const SizedBox(height: 16),
+            Text(
+              'Nenhuma mensagem ainda',
+              style: TextStyle(
+                fontSize: 18,
+                fontWeight: FontWeight.w500,
+                color: Colors.grey[600],
+              ),
+            ),
+            const SizedBox(height: 8),
+            Text(
+              'Envie uma mensagem para começar a conversar com o bot!',
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                fontSize: 14,
+                color: Colors.grey[500],
+              ),
+            ),
+          ],
         ),
-        // Textos em português
-        l10n: const ChatL10nPt(),
-        // Desabilita swipe to reply (opcional)
-        disableImageGallery: false,
-        // Avatar customizado
-        showUserAvatars: true,
-        showUserNames: true,
       ),
     );
   }
@@ -542,12 +681,16 @@ class _ChatScreenState extends State<ChatScreen> {
 
 /// Localização em português para o chat
 class ChatL10nPt extends ChatL10n {
-  const ChatL10nPt({
-    super.attachmentButtonAccessibilityLabel = 'Enviar mídia',
-    super.emptyChatPlaceholder = 'Nenhuma mensagem ainda',
-    super.fileButtonAccessibilityLabel = 'Arquivo',
-    super.inputPlaceholder = 'Digite uma mensagem',
-    super.sendButtonAccessibilityLabel = 'Enviar',
-    super.unreadMessagesLabel = 'Mensagens não lidas',
-  });
+  const ChatL10nPt()
+      : super(
+          and: 'e',
+          attachmentButtonAccessibilityLabel: 'Enviar mídia',
+          emptyChatPlaceholder: 'Nenhuma mensagem ainda',
+          fileButtonAccessibilityLabel: 'Arquivo',
+          inputPlaceholder: 'Digite uma mensagem',
+          isTyping: 'está digitando',
+          others: 'outros',
+          sendButtonAccessibilityLabel: 'Enviar',
+          unreadMessagesLabel: 'Mensagens não lidas',
+        );
 }
