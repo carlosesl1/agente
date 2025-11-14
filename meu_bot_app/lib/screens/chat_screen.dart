@@ -9,6 +9,7 @@ import '../services/n8n_service.dart';
 import '../services/media_service.dart';
 import '../services/audio_service.dart';
 import '../services/connectivity_service.dart';
+import '../services/message_service.dart';
 import 'login_screen.dart';
 
 /// Tela principal de chat
@@ -40,12 +41,15 @@ class _ChatScreenState extends State<ChatScreen> {
   // Bot está digitando
   bool _botIsTyping = false;
 
+  // Carregando histórico do banco
+  bool _isLoadingHistory = true;
+
   @override
   void initState() {
     super.initState();
     _initializeUsers();
-    _loadWelcomeMessage();
     _configureTimeago();
+    _loadMessagesFromDatabase();
   }
 
   /// Configura formatação de timestamps em português
@@ -71,7 +75,46 @@ class _ChatScreenState extends State<ChatScreen> {
     );
   }
 
-  /// Carrega mensagem de boas-vindas
+  /// Carrega mensagens do banco de dados
+  Future<void> _loadMessagesFromDatabase() async {
+    setState(() {
+      _isLoadingHistory = true;
+    });
+
+    try {
+      final userId = SupabaseService.getCurrentUser()?.id;
+
+      if (userId == null) {
+        print('⚠️ Usuário não autenticado');
+        _loadWelcomeMessage();
+        return;
+      }
+
+      // Carregar últimas 50 mensagens
+      final messages = await MessageService.loadMessages(userId, limit: 50);
+
+      setState(() {
+        _messages.clear();
+        _messages.addAll(messages);
+      });
+
+      // Se não houver mensagens, mostra boas-vindas
+      if (_messages.isEmpty) {
+        _loadWelcomeMessage();
+      }
+
+      print('✓ ${_messages.length} mensagens carregadas do banco');
+    } catch (e) {
+      print('✗ Erro ao carregar mensagens: $e');
+      _loadWelcomeMessage(); // Fallback para mensagem de boas-vindas
+    } finally {
+      setState(() {
+        _isLoadingHistory = false;
+      });
+    }
+  }
+
+  /// Carrega mensagem de boas-vindas (apenas se não houver histórico)
   void _loadWelcomeMessage() {
     final welcomeMessage = types.TextMessage(
       author: _bot,
@@ -83,6 +126,12 @@ class _ChatScreenState extends State<ChatScreen> {
     setState(() {
       _messages.insert(0, welcomeMessage);
     });
+
+    // Salvar mensagem de boas-vindas no banco
+    final userId = SupabaseService.getCurrentUser()?.id;
+    if (userId != null) {
+      MessageService.saveMessage(welcomeMessage, userId);
+    }
   }
 
   /// Verifica se há conexão com internet
@@ -115,11 +164,17 @@ class _ChatScreenState extends State<ChatScreen> {
     await _sendTextToBot(message.text);
   }
 
-  /// Adiciona uma mensagem à lista
+  /// Adiciona uma mensagem à lista e salva no banco
   void _addMessage(types.Message message) {
     setState(() {
       _messages.insert(0, message);
     });
+
+    // Salvar no banco de dados
+    final userId = SupabaseService.getCurrentUser()?.id;
+    if (userId != null) {
+      MessageService.saveMessage(message, userId);
+    }
   }
 
   /// Envia mensagem de texto para o bot via N8N
@@ -599,9 +654,11 @@ class _ChatScreenState extends State<ChatScreen> {
             ),
           // Chat principal
           Expanded(
-            child: _messages.isEmpty
-                ? _buildEmptyState()
-                : Chat(
+            child: _isLoadingHistory
+                ? _buildLoadingState()
+                : _messages.isEmpty
+                    ? _buildEmptyState()
+                    : Chat(
                     messages: _messages,
                     onSendPressed: _handleSendPressed,
                     onAttachmentPressed: _handleAttachmentPressed,
@@ -635,6 +692,26 @@ class _ChatScreenState extends State<ChatScreen> {
                       return timeago.format(dateTime, locale: 'pt_BR');
                     },
                   ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  /// Widget para o estado de carregamento inicial
+  Widget _buildLoadingState() {
+    return Center(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          const CircularProgressIndicator(),
+          const SizedBox(height: 16),
+          Text(
+            'Carregando conversas...',
+            style: TextStyle(
+              fontSize: 16,
+              color: Colors.grey[600],
+            ),
           ),
         ],
       ),
