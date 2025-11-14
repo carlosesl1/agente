@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:dio/dio.dart';
 import 'package:http_parser/http_parser.dart';
 import '../config/app_config.dart';
+import 'retry_service.dart';
 
 /// Serviço de integração com N8N
 ///
@@ -48,29 +49,37 @@ class N8nService {
   /// }
   /// ```
   static Future<N8nResponse> sendMessage(String message, String userId) async {
-    try {
-      final payload = {
-        'userId': userId,
-        'messageType': 'text',
-        'content': message,
-        'timestamp': DateTime.now().toIso8601String(),
-      };
+    return RetryService.executeWithTimeout(
+      operation: () async {
+        try {
+          final payload = {
+            'userId': userId,
+            'messageType': 'text',
+            'content': message,
+            'timestamp': DateTime.now().toIso8601String(),
+          };
 
-      print('📤 Enviando mensagem para N8N: $message');
+          print('📤 Enviando mensagem para N8N: $message');
 
-      final response = await _dio.post(
-        AppConfig.n8nWebhookUrl,
-        data: payload,
-      );
+          final response = await _dio.post(
+            AppConfig.n8nWebhookUrl,
+            data: payload,
+          );
 
-      print('📥 Resposta recebida do N8N: ${response.data}');
+          print('📥 Resposta recebida do N8N: ${response.data}');
 
-      return N8nResponse.fromJson(response.data);
-    } on DioException catch (e) {
-      throw _handleDioError(e);
-    } catch (e) {
-      throw Exception('Erro ao enviar mensagem: $e');
-    }
+          return N8nResponse.fromJson(response.data);
+        } on DioException catch (e) {
+          throw _handleDioError(e);
+        } catch (e) {
+          throw Exception('Erro ao enviar mensagem: $e');
+        }
+      },
+      timeoutSeconds: AppConfig.httpTimeout,
+      onRetry: (attempt, error) {
+        print('🔄 Tentando enviar mensagem novamente (tentativa $attempt)...');
+      },
+    );
   }
 
   /// Envia uma imagem para o N8N
