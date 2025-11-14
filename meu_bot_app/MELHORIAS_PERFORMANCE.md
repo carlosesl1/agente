@@ -478,21 +478,214 @@ await N8nService.initialize();
 
 ---
 
-### 10. **Logging Estruturado** 📝
+### 10. **Logging Estruturado** 📝 ✅ IMPLEMENTADO
 
 **Problema**: Prints não são suficientes para debug em produção.
 
 **Solução**:
 - Logger com níveis (debug, info, warning, error)
-- Logs salvos localmente
-- Envio opcional para analytics
+- Logs salvos localmente em SharedPreferences
+- Persistência de até 500 logs
+- Exportação para JSON ou texto formatado
+- Busca e filtros por nível/data/texto
+- Estatísticas de logs
+- Callback opcional para analytics
 
 **Impacto**: ⭐⭐⭐ (Médio)
 
+**Status**: ✅ **IMPLEMENTADO**
+
 **Dependência**:
 ```yaml
-logger: ^2.0.2
+logger: ^2.0.2+1  # ✅ ADICIONADO
 ```
+
+**Implementação**: ✅ **COMPLETA**
+- ✅ `lib/services/app_logger.dart` - Serviço completo de logging (490+ linhas)
+- ✅ `lib/services/logging_examples.dart` - Guia de integração com exemplos
+- ✅ Singleton pattern com AppLogger()
+- ✅ Classe global `Log` para uso simplificado
+- ✅ 4 níveis: debug, info, warning, error
+- ✅ Persistência automática em disco
+- ✅ Limite de 500 logs (remove automaticamente os mais antigos)
+- ✅ Estrutura de LogEntry com metadata, error, stackTrace
+- ✅ Métodos de busca e filtros
+- ✅ Exportação para JSON e texto formatado
+- ✅ Estatísticas de logs por nível
+- ✅ Limpeza de logs antigos (configurável)
+- ✅ Pretty printer com emojis e cores no console
+
+**Como funciona**:
+1. Inicializar no `main.dart` antes do runApp
+2. Usar classe global `Log` para logging rápido
+3. Ou usar `AppLogger()` para controle avançado
+4. Logs são automaticamente persistidos em disco
+5. Consultar, filtrar e exportar logs conforme necessário
+
+**Exemplo de uso básico**:
+```dart
+// main.dart - Inicialização
+await AppLogger().initialize();
+
+// Em qualquer lugar do app - Uso simples
+Log.info('Usuário fez login');
+Log.debug('Valor da variável: $value');
+Log.warning('Cache está cheio', metadata: {'size': cacheSize});
+Log.error('Falha ao carregar', error: e, stackTrace: stackTrace);
+
+// Uso avançado com metadata
+Log.info('Mensagem enviada', metadata: {
+  'userId': userId,
+  'messageType': 'text',
+  'messageLength': message.length,
+});
+
+// Tratamento de erro completo
+try {
+  await sendMessage();
+} catch (e, stackTrace) {
+  Log.error(
+    'Falha ao enviar mensagem',
+    error: e,
+    stackTrace: stackTrace,
+    metadata: {'userId': userId},
+  );
+}
+```
+
+**Consultando logs**:
+```dart
+final logger = AppLogger();
+
+// Obter todos os logs
+final allLogs = logger.getAllLogs();
+
+// Filtrar por nível
+final errors = logger.getLogsByLevel(LogLevel.error);
+
+// Filtrar por período
+final today = logger.getLogsSince(DateTime.now().subtract(Duration(days: 1)));
+
+// Buscar por texto
+final results = logger.searchLogs('erro ao carregar');
+
+// Estatísticas
+final stats = logger.getLogStatistics();
+print('Erros: ${stats[LogLevel.error]}');
+print('Warnings: ${stats[LogLevel.warning]}');
+
+// Exportar logs
+final jsonLogs = logger.exportLogsAsJson();
+final textLogs = logger.exportLogsAsText();
+
+// Limpar logs antigos (> 7 dias)
+await logger.clearOldLogs(days: 7);
+
+// Limpar todos os logs
+await logger.clearLogs();
+```
+
+**Integrando nos serviços** (ver `logging_examples.dart`):
+```dart
+// N8nService
+static Future<N8nResponse?> sendMessage(String message, String userId) async {
+  Log.info('Enviando mensagem', metadata: {
+    'userId': userId,
+    'messageLength': message.length,
+  });
+
+  try {
+    final response = await _dio.post(...);
+
+    Log.info('Resposta recebida', metadata: {
+      'statusCode': response.statusCode,
+    });
+
+    return N8nResponse.fromJson(response.data);
+  } catch (e, stackTrace) {
+    Log.error(
+      'Erro ao enviar mensagem',
+      error: e,
+      stackTrace: stackTrace,
+      metadata: {'userId': userId},
+    );
+    rethrow;
+  }
+}
+
+// MessageService
+static Future<void> saveMessage(types.Message message, String userId) async {
+  Log.debug('Salvando mensagem', metadata: {
+    'messageId': message.id,
+    'userId': userId,
+  });
+
+  try {
+    await SupabaseService.client.from('messages').insert(data);
+    Log.info('Mensagem salva', metadata: {'messageId': message.id});
+  } catch (e, stackTrace) {
+    Log.error(
+      'Falha ao salvar mensagem',
+      error: e,
+      stackTrace: stackTrace,
+      metadata: {'messageId': message.id},
+    );
+  }
+}
+```
+
+**Logs de exemplo**:
+```
+🔍 [DEBUG] 2025-01-14 15:30:25
+Mensagem: Salvando mensagem
+Metadata: {messageId: abc123, userId: user456}
+
+ℹ️ [INFO] 2025-01-14 15:30:26
+Mensagem: Mensagem salva com sucesso
+Metadata: {messageId: abc123}
+
+⚠️ [WARNING] 2025-01-14 15:30:30
+Mensagem: Cache está cheio, removendo itens antigos
+Metadata: {cacheSize: 100, maxSize: 100}
+
+❌ [ERROR] 2025-01-14 15:30:45
+Mensagem: Falha ao carregar mensagens do Supabase
+Metadata: {userId: user456, limit: 50}
+Erro: PostgrestException: Connection timeout
+Stack Trace:
+#0      SupabaseClient.from (package:supabase/...)
+#1      MessageService.loadMessages (lib/services/message_service.dart:82)
+...
+```
+
+**Callback para analytics** (opcional):
+```dart
+// Inicializar com callback
+await AppLogger().initialize();
+
+AppLogger().onLog = (logEntry) {
+  // Enviar para Firebase Analytics, Sentry, etc
+  if (logEntry.level == LogLevel.error) {
+    FirebaseAnalytics.instance.logEvent(
+      name: 'app_error',
+      parameters: {
+        'message': logEntry.message,
+        'error': logEntry.error ?? '',
+        ...logEntry.metadata ?? {},
+      },
+    );
+  }
+};
+```
+
+**Benefícios**:
+- Debug facilitado em produção
+- Rastreamento completo de erros
+- Contexto rico com metadata
+- Persistência local para análise posterior
+- Exportação fácil para suporte
+- Integração opcional com analytics
+- Performance: logs não bloqueiam o app
 
 ---
 
@@ -642,7 +835,7 @@ flutter build apk --obfuscate --split-debug-info=build/debug-info
 6. ✅ **Cache de Mensagens** (IMPLEMENTADO)
 7. ✅ **Lazy Loading** (IMPLEMENTADO)
 8. ✅ **Compressão de Áudio** (IMPLEMENTADO)
-9. Logging Estruturado
+9. ✅ **Logging Estruturado** (IMPLEMENTADO)
 10. Analytics
 
 ### 🟢 DESEJÁVEL (Futuro):
@@ -670,7 +863,7 @@ Dia 2:
 
 Dia 3:
 - [x] Compressão de áudio ✅ IMPLEMENTADO
-- [ ] Logging estruturado
+- [x] Logging estruturado ✅ IMPLEMENTADO
 - [ ] Testes
 ```
 
