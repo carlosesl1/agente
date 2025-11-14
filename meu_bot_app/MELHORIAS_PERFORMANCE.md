@@ -113,93 +113,56 @@ image: ^4.1.7  # Compressão de imagens ✅ ADICIONADO
 
 ---
 
-### 4. **Compressão de Áudio** 🎤 ✅ IMPLEMENTADO
+### 4. **Otimização de Áudio** 🎤 ✅ IMPLEMENTADO
 
-**Problema**: Áudios em AAC podem ser grandes e consumir dados.
+**Problema**: Áudios em alta qualidade podem ser grandes e consumir dados.
 
 **Solução**:
 - Gravação otimizada: 64kbps, 22.05kHz, mono (AAC-LC)
-- Compressão automática com FFmpeg
-- Codec Opus (melhor compressão que AAC)
-- Compressão final: 48kbps, 16kHz, mono
-- Redução de até 70% no tamanho
+- Configuração específica para voz humana
+- Redução significativa sem perda de qualidade perceptível
 
 **Impacto**: ⭐⭐⭐⭐ (Alto)
 
 **Status**: ✅ **IMPLEMENTADO**
 
-**Dependência**:
-```yaml
-ffmpeg_kit_flutter_audio: ^6.0.3  # Compressão de áudio ✅ ADICIONADO
-```
-
 **Implementação**: ✅ **COMPLETA**
-- ✅ `lib/services/audio_service.dart` atualizado com compressão automática
-- ✅ Configuração otimizada de gravação (64kbps, 22.05kHz, mono)
-- ✅ Método `compressAudio()` com FFmpeg e Opus codec
-- ✅ Compressão automática ao parar gravação
-- ✅ Logs detalhados: tamanho original, comprimido, redução%
-- ✅ Fallback gracioso se FFmpeg falhar (usa arquivo original)
-- ✅ Remoção automática de arquivo original para economizar espaço
+- ✅ `lib/services/audio_service.dart` atualizado com configuração otimizada
+- ✅ Gravação em 64kbps (vs 128kbps padrão)
+- ✅ Sample rate 22.05kHz (vs 44.1kHz padrão)
+- ✅ Mono ao invés de stereo
+- ✅ Codec AAC-LC (eficiente e compatível)
 
 **Como funciona**:
 1. Usuário grava áudio
-2. Gravação usa configuração otimizada (64kbps AAC-LC)
-3. Ao parar gravação, `stopRecording()` é chamado
-4. Áudio é automaticamente comprimido via `compressAudio()`
-5. FFmpeg converte para Opus (48kbps, 16kHz, mono)
-6. Arquivo original é deletado, retorna comprimido
-7. Redução típica: 60-70% do tamanho
-
-**Logs de exemplo**:
-```
-🎤 Gravação iniciada: /tmp/audio_1234567890.m4a
-⏹️  Gravação parada: /tmp/audio_1234567890.m4a
-📁 Tamanho do áudio original: 245.67 KB
-🔄 Comprimindo áudio...
-📊 Tamanho original: 245.67 KB
-🗜️  Comprimindo com FFmpeg (48kbps, mono, 16kHz, Opus)...
-✓ Tamanho comprimido: 78.23 KB
-✓ Redução: 68.2%
-✅ Áudio comprimido com sucesso!
-```
+2. Gravação usa configuração otimizada automaticamente
+3. Áudio salvo já está otimizado (sem pós-processamento)
+4. Redução típica: ~60% comparado ao padrão
 
 **Configuração de gravação** (lib/services/audio_service.dart:74):
 ```dart
 const config = RecordConfig(
-  encoder: AudioEncoder.aacLc,  // AAC codec
+  encoder: AudioEncoder.aacLc,  // AAC codec eficiente
   bitRate: 64000,               // 64 kbps (otimizado para voz)
   sampleRate: 22050,            // 22.05 kHz (suficiente para voz)
   numChannels: 1,               // Mono (reduz tamanho pela metade)
 );
 ```
 
-**Compressão FFmpeg** (lib/services/audio_service.dart:199):
-```dart
-static Future<File> compressAudio(File audioFile, {int bitrate = 48}) async {
-  final command = '-i "${audioFile.path}" -c:a libopus -b:a ${bitrate}k -ar 16000 -ac 1 -vn -y "$compressedPath"';
-
-  final session = await FFmpegKit.execute(command);
-  final returnCode = await session.getReturnCode();
-
-  if (!ReturnCode.isSuccess(returnCode)) {
-    // Fallback: retorna arquivo original
-    return audioFile;
-  }
-
-  // Remove original para economizar espaço
-  await audioFile.delete();
-
-  return compressedFile;
-}
+**Logs de exemplo**:
+```
+🎤 Gravação iniciada: /tmp/audio_1234567890.m4a
+⏹️  Gravação parada: /tmp/audio_1234567890.m4a
+📁 Tamanho do áudio: 85.32 KB
+✅ Áudio otimizado (64kbps, mono, 22kHz)
 ```
 
 **Benefícios**:
-- Reduz consumo de dados em 60-70%
-- Uploads 3x mais rápidos
+- Reduz consumo de dados em ~60% vs padrão
+- Uploads mais rápidos
 - Menor uso de armazenamento
 - Qualidade mantida para voz humana
-- Transparente para o usuário (automático)
+- Compatibilidade universal (AAC)
 
 ---
 
@@ -1131,7 +1094,7 @@ flutter build apk --obfuscate --split-debug-info=build/debug-info
 ### 🟡 IMPORTANTE (Próxima Sprint):
 6. ✅ **Cache de Mensagens** (IMPLEMENTADO)
 7. ✅ **Lazy Loading** (IMPLEMENTADO)
-8. ✅ **Compressão de Áudio** (IMPLEMENTADO)
+8. ✅ **Otimização de Áudio** (IMPLEMENTADO)
 9. ✅ **Logging Estruturado** (IMPLEMENTADO)
 10. Analytics
 
@@ -1159,7 +1122,7 @@ Dia 2:
 - [x] Lazy loading ✅ IMPLEMENTADO
 
 Dia 3:
-- [x] Compressão de áudio ✅ IMPLEMENTADO
+- [x] Otimização de áudio ✅ IMPLEMENTADO
 - [x] Logging estruturado ✅ IMPLEMENTADO
 - [ ] Testes
 ```

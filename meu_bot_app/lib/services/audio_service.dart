@@ -2,13 +2,11 @@ import 'dart:io';
 import 'package:path_provider/path_provider.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:record/record.dart';
-import 'package:ffmpeg_kit_flutter_audio/ffmpeg_kit.dart';
-import 'package:ffmpeg_kit_flutter_audio/return_code.dart';
 
 /// Serviço de gravação e gerenciamento de áudio
 ///
 /// Responsável por gravar, processar e gerenciar arquivos de áudio
-/// Inclui compressão automática com FFmpeg
+/// Usa configuração otimizada (64kbps, mono, 22kHz) para áudios pequenos
 class AudioService {
   /// Instância do gravador de áudio
   static final AudioRecorder _recorder = AudioRecorder();
@@ -129,12 +127,10 @@ class AudioService {
 
       final audioFile = File(path);
       final fileSize = await audioFile.length();
-      print('📁 Tamanho do áudio original: ${(fileSize / 1024).toStringAsFixed(2)} KB');
+      print('📁 Tamanho do áudio: ${(fileSize / 1024).toStringAsFixed(2)} KB');
+      print('✅ Áudio otimizado (64kbps, mono, 22kHz)');
 
-      // Comprime o áudio automaticamente
-      final compressedFile = await compressAudio(audioFile);
-
-      return compressedFile;
+      return audioFile;
     } catch (e) {
       _isRecording = false;
       _currentAudioPath = null;
@@ -171,98 +167,6 @@ class AudioService {
       }
     } catch (e) {
       print('Erro ao cancelar gravação: $e');
-    }
-  }
-
-  // ========== COMPRESSÃO DE ÁUDIO ==========
-
-  /// Comprime um arquivo de áudio usando FFmpeg
-  ///
-  /// [audioFile] - Arquivo de áudio a ser comprimido
-  /// [bitrate] - Bitrate desejado em kbps (padrão: 48)
-  ///
-  /// Retorna o arquivo comprimido
-  ///
-  /// A compressão inclui:
-  /// - Redução de bitrate para 48kbps (otimizado para voz)
-  /// - Conversão para mono (se ainda não for)
-  /// - Sample rate reduzido para 16kHz (ideal para voz)
-  /// - Codec Opus (melhor compressão que AAC)
-  /// - Redução de até 70% no tamanho
-  ///
-  /// Exemplo de uso:
-  /// ```dart
-  /// final compressed = await AudioService.compressAudio(audioFile, bitrate: 48);
-  /// print('Original: ${await audioFile.length()} bytes');
-  /// print('Comprimido: ${await compressed.length()} bytes');
-  /// ```
-  static Future<File> compressAudio(
-    File audioFile, {
-    int bitrate = 48,
-  }) async {
-    try {
-      print('🔄 Comprimindo áudio...');
-
-      final originalSize = await audioFile.length();
-      print('📊 Tamanho original: ${(originalSize / 1024).toStringAsFixed(2)} KB');
-
-      // Gera nome do arquivo comprimido
-      final directory = await getTemporaryDirectory();
-      final timestamp = DateTime.now().millisecondsSinceEpoch;
-      final compressedPath = '${directory.path}/compressed_audio_$timestamp.opus';
-
-      // Comando FFmpeg para comprimir
-      // -i: input file
-      // -c:a: codec de áudio
-      // -b:a: bitrate de áudio
-      // -ar: sample rate
-      // -ac: audio channels (1 = mono)
-      // -vn: sem vídeo
-      // -y: sobrescrever arquivo se existir
-      final command =
-          '-i "${audioFile.path}" -c:a libopus -b:a ${bitrate}k -ar 16000 -ac 1 -vn -y "$compressedPath"';
-
-      print('🗜️  Comprimindo com FFmpeg (${bitrate}kbps, mono, 16kHz, Opus)...');
-
-      // Executa FFmpeg
-      final session = await FFmpegKit.execute(command);
-      final returnCode = await session.getReturnCode();
-
-      if (!ReturnCode.isSuccess(returnCode)) {
-        // Se falhar, retorna arquivo original
-        final output = await session.getOutput();
-        print('⚠️  FFmpeg falhou, usando arquivo original: $output');
-        return audioFile;
-      }
-
-      final compressedFile = File(compressedPath);
-
-      // Verifica se arquivo comprimido foi criado
-      if (!await compressedFile.exists()) {
-        print('⚠️  Arquivo comprimido não foi criado, usando original');
-        return audioFile;
-      }
-
-      final compressedSize = await compressedFile.length();
-      final reduction = ((1 - (compressedSize / originalSize)) * 100);
-
-      print('✓ Tamanho comprimido: ${(compressedSize / 1024).toStringAsFixed(2)} KB');
-      print('✓ Redução: ${reduction.toStringAsFixed(1)}%');
-
-      // Remove arquivo original para economizar espaço
-      try {
-        await audioFile.delete();
-      } catch (e) {
-        print('⚠️  Não foi possível remover arquivo original: $e');
-      }
-
-      print('✅ Áudio comprimido com sucesso!');
-
-      return compressedFile;
-    } catch (e) {
-      print('❌ Erro ao comprimir áudio: $e');
-      // Em caso de erro, retorna arquivo original
-      return audioFile;
     }
   }
 
