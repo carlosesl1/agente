@@ -80,7 +80,7 @@ class N8nService {
   static Future<bool> _sendQueuedMessage(QueuedMessage message) async {
     try {
       // Monta payload
-      final payload = {
+      final Map<String, dynamic> payload = {
         'userId': message.userId,
         'messageType': message.mediaType ?? 'text',
         'content': message.mediaBase64 ?? message.content,

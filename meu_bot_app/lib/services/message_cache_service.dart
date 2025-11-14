@@ -4,12 +4,12 @@ import 'package:flutter_chat_types/flutter_chat_types.dart' as types;
 import 'package:shared_preferences/shared_preferences.dart';
 import 'message_service.dart';
 
-/// Serviço de cache de mensagens em memória
+/// Serviï¿½o de cache de mensagens em memï¿½ria
 ///
-/// Mantém as últimas mensagens em cache para carregamento instantâneo
+/// Mantï¿½m as ï¿½ltimas mensagens em cache para carregamento instantï¿½neo
 /// e reduz consultas ao Supabase
 class MessageCacheService {
-  /// Instância singleton
+  /// Instï¿½ncia singleton
   static final MessageCacheService _instance =
       MessageCacheService._internal();
 
@@ -17,20 +17,20 @@ class MessageCacheService {
 
   MessageCacheService._internal();
 
-  /// Chave para persistência no SharedPreferences
+  /// Chave para persistï¿½ncia no SharedPreferences
   static const String _cacheKey = 'message_cache';
 
-  /// Tamanho máximo do cache (últimas N mensagens)
+  /// Tamanho mï¿½ximo do cache (ï¿½ltimas N mensagens)
   static const int _maxCacheSize = 100;
 
-  /// Cache em memória
+  /// Cache em memï¿½ria
   final List<types.Message> _cache = [];
 
-  /// Stream controller para mudanças no cache
+  /// Stream controller para mudanï¿½as no cache
   final StreamController<List<types.Message>> _cacheController =
       StreamController<List<types.Message>>.broadcast();
 
-  /// Stream de mudanças no cache
+  /// Stream de mudanï¿½as no cache
   Stream<List<types.Message>> get cacheStream => _cacheController.stream;
 
   /// Getter do cache atual
@@ -39,33 +39,33 @@ class MessageCacheService {
   /// Quantidade de mensagens em cache
   int get count => _cache.length;
 
-  /// Flag de inicialização
+  /// Flag de inicializaï¿½ï¿½o
   bool _initialized = false;
 
-  /// ID do usuário atual
+  /// ID do usuï¿½rio atual
   String? _currentUserId;
 
   /// Inicializa o cache
   ///
-  /// [userId] - ID do usuário para carregar cache específico
-  /// [preload] - Se deve pré-carregar do Supabase (padrão: true)
+  /// [userId] - ID do usuï¿½rio para carregar cache especï¿½fico
+  /// [preload] - Se deve prï¿½-carregar do Supabase (padrï¿½o: true)
   Future<void> initialize({
     required String userId,
     bool preload = true,
   }) async {
     if (_initialized && _currentUserId == userId) {
-      print('   MessageCacheService já inicializado para usuário $userId');
+      print('ï¿½  MessageCacheService jï¿½ inicializado para usuï¿½rio $userId');
       return;
     }
 
     _currentUserId = userId;
 
-    print('=€ Inicializando MessageCacheService...');
+    print('=ï¿½ Inicializando MessageCacheService...');
 
     // Carrega cache do SharedPreferences
     await _loadFromDisk();
 
-    // Se pré-carregamento ativado, busca mensagens do Supabase em background
+    // Se prï¿½-carregamento ativado, busca mensagens do Supabase em background
     if (preload) {
       _preloadFromSupabase(userId);
     }
@@ -78,7 +78,7 @@ class MessageCacheService {
   ///
   /// Automaticamente remove mensagens antigas se exceder limite
   Future<void> addMessage(types.Message message) async {
-    // Verifica se mensagem já existe (evita duplicatas)
+    // Verifica se mensagem jï¿½ existe (evita duplicatas)
     final existingIndex = _cache.indexWhere((m) => m.id == message.id);
 
     if (existingIndex != -1) {
@@ -86,14 +86,14 @@ class MessageCacheService {
       _cache[existingIndex] = message;
       print('= Mensagem atualizada no cache: ${message.id}');
     } else {
-      // Adiciona nova mensagem no início (mais recente)
+      // Adiciona nova mensagem no inï¿½cio (mais recente)
       _cache.insert(0, message);
-      print('• Mensagem adicionada ao cache: ${message.id}');
+      print('ï¿½ Mensagem adicionada ao cache: ${message.id}');
 
       // Remove mensagens antigas se exceder limite
       if (_cache.length > _maxCacheSize) {
         final removed = _cache.removeLast();
-        print('=Ñ  Mensagem antiga removida do cache: ${removed.id}');
+        print('=ï¿½  Mensagem antiga removida do cache: ${removed.id}');
       }
     }
 
@@ -104,12 +104,12 @@ class MessageCacheService {
     _cacheController.add(_cache);
   }
 
-  /// Adiciona múltiplas mensagens ao cache
+  /// Adiciona mï¿½ltiplas mensagens ao cache
   ///
   /// Mais eficiente que adicionar uma por uma
   Future<void> addMessages(List<types.Message> messages) async {
     for (final message in messages) {
-      // Verifica se mensagem já existe
+      // Verifica se mensagem jï¿½ existe
       final existingIndex = _cache.indexWhere((m) => m.id == message.id);
 
       if (existingIndex == -1) {
@@ -117,7 +117,7 @@ class MessageCacheService {
       }
     }
 
-    // Mantém apenas as mais recentes
+    // Mantï¿½m apenas as mais recentes
     if (_cache.length > _maxCacheSize) {
       _cache.removeRange(_maxCacheSize, _cache.length);
     }
@@ -129,7 +129,7 @@ class MessageCacheService {
       return bTime.compareTo(aTime);
     });
 
-    print('=æ ${messages.length} mensagens adicionadas ao cache (total: ${_cache.length})');
+    print('=ï¿½ ${messages.length} mensagens adicionadas ao cache (total: ${_cache.length})');
 
     // Salva no disco
     await _saveToDisk();
@@ -140,10 +140,12 @@ class MessageCacheService {
 
   /// Remove mensagem do cache
   Future<void> removeMessage(String messageId) async {
-    final removed = _cache.removeWhere((m) => m.id == messageId);
+    final initialLength = _cache.length;
+    _cache.removeWhere((m) => m.id == messageId);
+    final removed = initialLength - _cache.length;
 
     if (removed > 0) {
-      print('=Ñ  Mensagem removida do cache: $messageId');
+      print('=ï¿½  Mensagem removida do cache: $messageId');
 
       // Salva no disco
       await _saveToDisk();
@@ -158,7 +160,7 @@ class MessageCacheService {
     _cache.clear();
     await _saveToDisk();
     _cacheController.add(_cache);
-    print('>ù Cache limpo');
+    print('>ï¿½ Cache limpo');
   }
 
   /// Busca mensagem por ID
@@ -182,10 +184,10 @@ class MessageCacheService {
     }).toList();
   }
 
-  /// Obtém mensagens paginadas do cache
+  /// Obtï¿½m mensagens paginadas do cache
   ///
   /// [limit] - Quantidade de mensagens
-  /// [offset] - Offset para paginação
+  /// [offset] - Offset para paginaï¿½ï¿½o
   List<types.Message> getMessages({int limit = 20, int offset = 0}) {
     final end = (offset + limit).clamp(0, _cache.length);
 
@@ -213,16 +215,16 @@ class MessageCacheService {
             final message = _messageFromCacheJson(json as Map<String, dynamic>);
             _cache.add(message);
           } catch (e) {
-            print('   Erro ao deserializar mensagem: $e');
+            print('ï¿½  Erro ao deserializar mensagem: $e');
           }
         }
 
-        print('=Â Cache carregado do disco (${_cache.length} mensagens)');
+        print('=ï¿½ Cache carregado do disco (${_cache.length} mensagens)');
 
         // Emite update inicial
         _cacheController.add(_cache);
       } else {
-        print('=í Nenhum cache encontrado no disco');
+        print('=ï¿½ Nenhum cache encontrado no disco');
       }
     } catch (e) {
       print('L Erro ao carregar cache do disco: $e');
@@ -240,18 +242,18 @@ class MessageCacheService {
       final jsonString = jsonEncode(jsonList);
 
       await prefs.setString(cacheKey, jsonString);
-      // print('=¾ Cache salvo no disco (${_cache.length} mensagens)');
+      // print('=ï¿½ Cache salvo no disco (${_cache.length} mensagens)');
     } catch (e) {
       print('L Erro ao salvar cache no disco: $e');
     }
   }
 
-  /// Pré-carrega mensagens do Supabase em background
+  /// Prï¿½-carrega mensagens do Supabase em background
   Future<void> _preloadFromSupabase(String userId) async {
     try {
-      print('= Pré-carregando mensagens do Supabase...');
+      print('= Prï¿½-carregando mensagens do Supabase...');
 
-      // Busca as últimas 100 mensagens
+      // Busca as ï¿½ltimas 100 mensagens
       final messages = await MessageService.loadMessages(
         userId,
         limit: _maxCacheSize,
@@ -259,16 +261,16 @@ class MessageCacheService {
 
       if (messages.isNotEmpty) {
         await addMessages(messages);
-        print(' ${messages.length} mensagens pré-carregadas do Supabase');
+        print(' ${messages.length} mensagens prï¿½-carregadas do Supabase');
       }
     } catch (e) {
-      print('L Erro ao pré-carregar do Supabase: $e');
+      print('L Erro ao prï¿½-carregar do Supabase: $e');
     }
   }
 
   /// Sincroniza cache com Supabase
   ///
-  /// Busca mensagens mais recentes que não estão no cache
+  /// Busca mensagens mais recentes que nï¿½o estï¿½o no cache
   Future<void> sync(String userId) async {
     try {
       print('= Sincronizando cache com Supabase...');
@@ -288,7 +290,7 @@ class MessageCacheService {
         await addMessages(newMessages);
         print(' ${newMessages.length} novas mensagens sincronizadas');
       } else {
-        print(' Cache já está atualizado');
+        print(' Cache jï¿½ estï¿½ atualizado');
       }
     } catch (e) {
       print('L Erro ao sincronizar cache: $e');
@@ -332,7 +334,7 @@ class MessageCacheService {
       return {
         ...baseData,
         'type': 'text',
-        'text': '[Tipo não suportado]',
+        'text': '[Tipo nï¿½o suportado]',
       };
     }
   }
@@ -392,6 +394,6 @@ class MessageCacheService {
   /// Dispose de recursos
   Future<void> dispose() async {
     await _cacheController.close();
-    print('=Ñ MessageCacheService finalizado');
+    print('=ï¿½ MessageCacheService finalizado');
   }
 }
