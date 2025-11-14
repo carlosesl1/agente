@@ -79,6 +79,9 @@ dependencies:
   # Persistência local (para fila offline)
   shared_preferences: ^2.3.3
 
+  # Compressão e processamento de áudio com FFmpeg
+  ffmpeg_kit_flutter_audio: ^6.0.3
+
 dev_dependencies:
   flutter_test:
     sdk: flutter
