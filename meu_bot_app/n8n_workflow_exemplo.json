@@ -1,0 +1,335 @@
+{
+  "name": "Meu Bot App - Workflow Exemplo",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "bot-chat",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "id": "webhook-receiver",
+      "name": "Webhook - Receber Mensagem",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 1.1,
+      "position": [
+        250,
+        300
+      ],
+      "webhookId": "seu-webhook-id-unico"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict"
+          },
+          "conditions": [
+            {
+              "id": "text-condition",
+              "leftValue": "={{ $json.body.messageType }}",
+              "rightValue": "text",
+              "operator": {
+                "type": "string",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "if-text",
+      "name": "É Mensagem de Texto?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [
+        450,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "userId",
+              "name": "userId",
+              "value": "={{ $json.body.userId }}",
+              "type": "string"
+            },
+            {
+              "id": "messageType",
+              "name": "messageType",
+              "value": "={{ $json.body.messageType }}",
+              "type": "string"
+            },
+            {
+              "id": "content",
+              "name": "content",
+              "value": "={{ $json.body.content }}",
+              "type": "string"
+            },
+            {
+              "id": "timestamp",
+              "name": "timestamp",
+              "value": "={{ $json.body.timestamp }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "extract-data",
+      "name": "Extrair Dados",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        650,
+        200
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Lógica simples de resposta do bot\nconst userMessage = $input.item.json.content.toLowerCase();\nlet botResponse = \"\";\n\n// Saudações\nif (userMessage.includes('olá') || userMessage.includes('oi') || userMessage.includes('hey')) {\n  botResponse = \"Olá! 👋 Como posso ajudar você hoje?\";\n}\n// Ajuda\nelse if (userMessage.includes('ajuda') || userMessage.includes('help')) {\n  botResponse = \"Estou aqui para ajudar! Você pode me perguntar sobre:\\n\\n• Informações gerais\\n• Enviar imagens\\n• Gravar áudios\\n• E muito mais!\\n\\nO que você gostaria de saber?\";\n}\n// Piadas\nelse if (userMessage.includes('piada') || userMessage.includes('joke')) {\n  const piadas = [\n    \"Por que o livro de matemática se suicidou? Porque tinha muitos problemas! 😄\",\n    \"O que o pato disse para a pata? Vem Quá! 🦆\",\n    \"Por que a galinha atravessou a rua? Para provar que não era frango! 🐔\"\n  ];\n  botResponse = piadas[Math.floor(Math.random() * piadas.length)];\n}\n// Horário\nelse if (userMessage.includes('horas') || userMessage.includes('hora')) {\n  const now = new Date();\n  botResponse = `Agora são ${now.toLocaleTimeString('pt-BR')} ⏰`;\n}\n// Data\nelse if (userMessage.includes('data') || userMessage.includes('dia')) {\n  const now = new Date();\n  botResponse = `Hoje é ${now.toLocaleDateString('pt-BR', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })} 📅`;\n}\n// Resposta padrão\nelse {\n  botResponse = `Você disse: \"${$input.item.json.content}\"\\n\\nSou um bot simples, mas estou aqui para ajudar! Digite \"ajuda\" para ver o que posso fazer. 🤖`;\n}\n\n// Retornar resposta no formato esperado pelo app\nreturn {\n  success: true,\n  response: {\n    type: \"text\",\n    text: botResponse,\n    data: null\n  },\n  metadata: {\n    processedAt: new Date().toISOString(),\n    userId: $input.item.json.userId\n  }\n};"
+      },
+      "id": "bot-logic-text",
+      "name": "Bot - Processar Texto",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        850,
+        200
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Processar imagem recebida\nconst imageData = $input.item.json.content; // base64 ou URL\nconst userId = $input.item.json.userId;\n\n// Aqui você pode:\n// 1. Salvar a imagem em storage (S3, Cloudinary, etc)\n// 2. Analisar a imagem com IA (Google Vision, AWS Rekognition)\n// 3. Processar OCR para extrair texto\n// 4. Fazer reconhecimento facial\n// etc.\n\n// Por enquanto, apenas confirma recebimento\nreturn {\n  success: true,\n  response: {\n    type: \"text\",\n    text: \"📸 Imagem recebida com sucesso! Obrigado por compartilhar.\\n\\nEm uma versão avançada, eu poderia analisar sua imagem e descrever o que vejo.\",\n    data: null\n  },\n  metadata: {\n    processedAt: new Date().toISOString(),\n    userId: userId,\n    imageSize: imageData ? imageData.length : 0\n  }\n};"
+      },
+      "id": "bot-logic-image",
+      "name": "Bot - Processar Imagem",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        850,
+        400
+      ]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ $json }}",
+        "options": {
+          "responseHeaders": {
+            "entries": [
+              {
+                "name": "Content-Type",
+                "value": "application/json"
+              }
+            ]
+          }
+        }
+      },
+      "id": "respond-to-webhook",
+      "name": "Responder para App",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1,
+      "position": [
+        1050,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict"
+          },
+          "conditions": [
+            {
+              "id": "image-condition",
+              "leftValue": "={{ $json.body.messageType }}",
+              "rightValue": "image",
+              "operator": {
+                "type": "string",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "if-image",
+      "name": "É Imagem?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [
+        650,
+        400
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Processar áudio recebido\nconst audioData = $input.item.json.content; // base64\nconst userId = $input.item.json.userId;\n\n// Aqui você pode:\n// 1. Salvar o áudio\n// 2. Converter para texto (Speech-to-Text)\n// 3. Analisar sentimentos na voz\n// 4. Responder com áudio (Text-to-Speech)\n// etc.\n\nreturn {\n  success: true,\n  response: {\n    type: \"text\",\n    text: \"🎤 Áudio recebido!\\n\\nEm uma versão avançada, eu poderia transcrever seu áudio e responder com voz.\",\n    data: null\n  },\n  metadata: {\n    processedAt: new Date().toISOString(),\n    userId: userId,\n    audioSize: audioData ? audioData.length : 0\n  }\n};"
+      },
+      "id": "bot-logic-audio",
+      "name": "Bot - Processar Áudio",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        850,
+        600
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict"
+          },
+          "conditions": [
+            {
+              "id": "audio-condition",
+              "leftValue": "={{ $json.body.messageType }}",
+              "rightValue": "audio",
+              "operator": {
+                "type": "string",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "if-audio",
+      "name": "É Áudio?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [
+        650,
+        600
+      ]
+    }
+  ],
+  "connections": {
+    "Webhook - Receber Mensagem": {
+      "main": [
+        [
+          {
+            "node": "É Mensagem de Texto?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "É Mensagem de Texto?": {
+      "main": [
+        [
+          {
+            "node": "Extrair Dados",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "É Imagem?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Extrair Dados": {
+      "main": [
+        [
+          {
+            "node": "Bot - Processar Texto",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Bot - Processar Texto": {
+      "main": [
+        [
+          {
+            "node": "Responder para App",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Bot - Processar Imagem": {
+      "main": [
+        [
+          {
+            "node": "Responder para App",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "É Imagem?": {
+      "main": [
+        [
+          {
+            "node": "Bot - Processar Imagem",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "É Áudio?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Bot - Processar Áudio": {
+      "main": [
+        [
+          {
+            "node": "Responder para App",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "É Áudio?": {
+      "main": [
+        [
+          {
+            "node": "Bot - Processar Áudio",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "pinData": {},
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "staticData": null,
+  "tags": [],
+  "triggerCount": 1,
+  "updatedAt": "2025-01-14T00:00:00.000Z",
+  "versionId": "1"
+}
