@@ -912,34 +912,6 @@ class _ChatScreenState extends State<ChatScreen> {
                           // Avatar customizado
                           showUserAvatars: true,
                           showUserNames: true,
-                          // Builder de erro para imagens que não existem
-                          imageErrorBuilder: (context, error, stackTrace) {
-                            return Container(
-                              padding: const EdgeInsets.all(16),
-                              decoration: BoxDecoration(
-                                color: Colors.grey[300],
-                                borderRadius: BorderRadius.circular(12),
-                              ),
-                              child: Column(
-                                mainAxisSize: MainAxisSize.min,
-                                children: [
-                                  Icon(
-                                    Icons.broken_image,
-                                    size: 48,
-                                    color: Colors.grey[600],
-                                  ),
-                                  const SizedBox(height: 8),
-                                  Text(
-                                    'Imagem não disponível',
-                                    style: TextStyle(
-                                      color: Colors.grey[600],
-                                      fontSize: 12,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            );
-                          },
                           // Customiza a exibição de cada mensagem para incluir timestamp
                           customDateHeaderText: (DateTime dateTime) {
                             return timeago.format(dateTime, locale: 'pt_BR');
