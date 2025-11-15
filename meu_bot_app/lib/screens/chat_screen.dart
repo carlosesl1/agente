@@ -757,6 +757,7 @@ class _ChatScreenState extends State<ChatScreen> {
     final isDark = themeProvider.isDarkMode;
 
     return Scaffold(
+      resizeToAvoidBottomInset: true,
       appBar: AppBar(
         title: Row(
           mainAxisSize: MainAxisSize.min,
@@ -855,15 +856,16 @@ class _ChatScreenState extends State<ChatScreen> {
                     ? _buildEmptyState()
                     : RefreshIndicator(
                         onRefresh: _handleRefresh,
-                        child: Chat(
-                          messages: _messages,
-                          onSendPressed: _handleSendPressed,
-                          user: _user,
-                          // Carregar mais mensagens quando chegar perto do fim
-                          onEndReached: _handleLoadMore,
-                          onEndReachedThreshold: 0.7, // Carrega quando estiver a 70% do fim
-                          // Scroll suave e natural (usa o padrão da plataforma)
-                          // Tema personalizado baseado no tema atual
+                        child: RepaintBoundary(
+                          child: Chat(
+                            messages: _messages,
+                            onSendPressed: _handleSendPressed,
+                            user: _user,
+                            // Carregar mais mensagens quando chegar perto do fim
+                            onEndReached: _handleLoadMore,
+                            onEndReachedThreshold: 0.7, // Carrega quando estiver a 70% do fim
+                            // Scroll suave e natural (usa o padrão da plataforma)
+                            // Tema personalizado baseado no tema atual
                           theme: DefaultChatTheme(
                             // Cor das mensagens do usuário
                             primaryColor: isDark
@@ -944,6 +946,7 @@ class _ChatScreenState extends State<ChatScreen> {
                           },
                           // Input customizado estilo WhatsApp
                           customBottomWidget: _buildCustomInput(isDark),
+                          ),
                         ),
                       ),
           ),
@@ -1029,48 +1032,51 @@ class _ChatScreenState extends State<ChatScreen> {
                     width: 1,
                   ),
                 ),
-                child: Row(
-                  children: [
-                    // Botão de anexo (imagem)
-                    IconButton(
-                      icon: Icon(
-                        Icons.add_photo_alternate_outlined,
-                        color: isDark
-                            ? AppThemes.darkInputText.withOpacity(0.7)
-                            : AppThemes.lightInputText.withOpacity(0.7),
-                      ),
-                      onPressed: _handleAttachmentPressed,
-                      tooltip: 'Enviar imagem',
-                    ),
-                    // Campo de texto
-                    Expanded(
-                      child: TextField(
-                        controller: _textController,
-                        style: TextStyle(
+                child: ClipRRect(
+                  borderRadius: BorderRadius.circular(24),
+                  child: Row(
+                    children: [
+                      // Botão de anexo (imagem)
+                      IconButton(
+                        icon: Icon(
+                          Icons.add_photo_alternate_outlined,
                           color: isDark
-                              ? AppThemes.darkInputText
-                              : AppThemes.lightInputText,
-                          fontSize: 16,
+                              ? AppThemes.darkInputText.withOpacity(0.7)
+                              : AppThemes.lightInputText.withOpacity(0.7),
                         ),
-                        decoration: InputDecoration(
-                          hintText: 'Digite uma mensagem',
-                          hintStyle: TextStyle(
-                            color: isDark
-                                ? AppThemes.darkInputText.withOpacity(0.5)
-                                : AppThemes.lightInputText.withOpacity(0.5),
-                          ),
-                          border: InputBorder.none,
-                          contentPadding: const EdgeInsets.symmetric(
-                            horizontal: 4,
-                            vertical: 10,
-                          ),
-                        ),
-                        maxLines: 5,
-                        minLines: 1,
-                        textCapitalization: TextCapitalization.sentences,
+                        onPressed: _handleAttachmentPressed,
+                        tooltip: 'Enviar imagem',
                       ),
-                    ),
-                  ],
+                      // Campo de texto
+                      Expanded(
+                        child: TextField(
+                          controller: _textController,
+                          style: TextStyle(
+                            color: isDark
+                                ? AppThemes.darkInputText
+                                : AppThemes.lightInputText,
+                            fontSize: 16,
+                          ),
+                          decoration: InputDecoration(
+                            hintText: 'Digite uma mensagem',
+                            hintStyle: TextStyle(
+                              color: isDark
+                                  ? AppThemes.darkInputText.withOpacity(0.5)
+                                  : AppThemes.lightInputText.withOpacity(0.5),
+                            ),
+                            border: InputBorder.none,
+                            contentPadding: const EdgeInsets.symmetric(
+                              horizontal: 4,
+                              vertical: 10,
+                            ),
+                          ),
+                          maxLines: 5,
+                          minLines: 1,
+                          textCapitalization: TextCapitalization.sentences,
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
               ),
             ),
