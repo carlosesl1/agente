@@ -67,6 +67,9 @@ dependencies:
   # Gerenciamento de permissões
   permission_handler: ^11.3.1
 
+  # Informações do dispositivo
+  device_info_plus: ^10.1.2
+
   # Verificação de conectividade
   connectivity_plus: ^6.0.5
 

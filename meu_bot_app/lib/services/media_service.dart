@@ -4,6 +4,7 @@ import 'package:image_picker/image_picker.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:image/image.dart' as img;
 import 'package:path_provider/path_provider.dart';
+import 'package:device_info_plus/device_info_plus.dart';
 
 /// Serviço de gerenciamento de mídia (imagens e fotos)
 ///
@@ -373,10 +374,15 @@ class MediaService {
       return 0;
     }
 
-    // Simula versão do Android
-    // Em produção, use package_info_plus ou device_info_plus
-    // Por simplicidade, assume Android 13+
-    return 33;
+    try {
+      final deviceInfo = DeviceInfoPlugin();
+      final androidInfo = await deviceInfo.androidInfo;
+      return androidInfo.version.sdkInt;
+    } catch (e) {
+      print('Erro ao obter versão do Android: $e');
+      // Fallback para versão antiga (usa storage permission)
+      return 30;
+    }
   }
 
   // ========== VALIDAÇÕES ==========

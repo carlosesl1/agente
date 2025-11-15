@@ -680,6 +680,8 @@ class _ChatScreenState extends State<ChatScreen> {
                           messages: _messages,
                           onSendPressed: _handleSendPressed,
                           user: _user,
+                          // Otimizações de performance
+                          scrollPhysics: const ClampingScrollPhysics(),
                           // Tema personalizado baseado no tema atual
                           theme: DefaultChatTheme(
                             // Cor das mensagens do usuário
