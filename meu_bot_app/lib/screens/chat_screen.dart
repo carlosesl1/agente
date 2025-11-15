@@ -84,8 +84,6 @@ class _ChatScreenState extends State<ChatScreen> with AutomaticKeepAliveClientMi
     super.initState();
     _initializeUsers();
     _configureTimeago();
-    _loadAssistants();
-    _loadMessagesFromDatabase();
 
     // Listener para o campo de texto
     _textController.addListener(() {
@@ -94,10 +92,21 @@ class _ChatScreenState extends State<ChatScreen> with AutomaticKeepAliveClientMi
       });
     });
 
-    // Listener para mudanças de assistente
+    // Carrega assistentes e mensagens em sequência
+    _initializeApp();
+  }
+
+  /// Inicializa o app: carrega assistentes e depois mensagens
+  Future<void> _initializeApp() async {
+    await _loadAssistants();
+    await _loadMessagesFromDatabase();
+
+    // Listener para mudanças de assistente (só adiciona após carregar)
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      final assistantProvider = context.read<AssistantProvider>();
-      assistantProvider.addListener(_onAssistantChanged);
+      if (mounted) {
+        final assistantProvider = context.read<AssistantProvider>();
+        assistantProvider.addListener(_onAssistantChanged);
+      }
     });
   }
 
@@ -123,6 +132,12 @@ class _ChatScreenState extends State<ChatScreen> with AutomaticKeepAliveClientMi
 
   /// Callback quando o assistente ativo muda
   void _onAssistantChanged() {
+    // Evita recarregar se já estiver carregando
+    if (_isLoadingHistory) {
+      print('⏭️  Assistente mudou, mas já está carregando mensagens...');
+      return;
+    }
+
     print('🔄 Assistente mudou, recarregando mensagens...');
     _loadMessagesFromDatabase();
   }
@@ -178,7 +193,6 @@ class _ChatScreenState extends State<ChatScreen> with AutomaticKeepAliveClientMi
 
       if (userId == null) {
         print('⚠️ Usuário não autenticado');
-        _loadWelcomeMessage();
         setState(() {
           _isLoadingHistory = false;
         });
@@ -219,18 +233,12 @@ class _ChatScreenState extends State<ChatScreen> with AutomaticKeepAliveClientMi
         _isLoadingHistory = false;
       });
 
-      // Se não houver mensagens, mostra boas-vindas
-      if (_messages.isEmpty) {
-        _loadWelcomeMessage();
-      } else {
-        print('✓ ${_messages.length} mensagens carregadas do banco');
-      }
+      print('✓ ${_messages.length} mensagens carregadas do banco');
     } catch (e) {
       print('✗ Erro ao carregar mensagens: $e');
       setState(() {
         _isLoadingHistory = false;
       });
-      _loadWelcomeMessage(); // Fallback para mensagem de boas-vindas
     }
   }
 
@@ -269,33 +277,6 @@ class _ChatScreenState extends State<ChatScreen> with AutomaticKeepAliveClientMi
       setState(() {
         _isLoadingMore = false;
       });
-    }
-  }
-
-  /// Carrega mensagem de boas-vindas (apenas se não houver histórico)
-  void _loadWelcomeMessage() {
-    final welcomeMessage = types.TextMessage(
-      author: _bot,
-      createdAt: DateTime.now().millisecondsSinceEpoch,
-      id: _uuid.v4(),
-      text: 'Olá! Sou seu assistente virtual. Como posso ajudá-lo hoje?',
-    );
-
-    setState(() {
-      _messages.insert(0, welcomeMessage);
-    });
-
-    // Salvar mensagem de boas-vindas no banco
-    final userId = SupabaseService.getCurrentUser()?.id;
-    if (userId != null) {
-      final assistantProvider = context.read<AssistantProvider>();
-      final currentAssistant = assistantProvider.currentAssistant;
-
-      MessageService.saveMessage(
-        welcomeMessage,
-        userId,
-        assistantId: currentAssistant?.id,
-      );
     }
   }
 
