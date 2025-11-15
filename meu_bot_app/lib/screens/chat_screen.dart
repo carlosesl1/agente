@@ -12,6 +12,7 @@ import '../services/audio_service.dart';
 import '../services/connectivity_service.dart';
 import '../services/message_service.dart';
 import '../widgets/skeleton_loading.dart';
+import '../widgets/typing_indicator.dart';
 import '../theme/app_themes.dart';
 import '../theme/theme_provider.dart';
 import 'login_screen.dart';
@@ -57,6 +58,9 @@ class _ChatScreenState extends State<ChatScreen> {
 
   // Texto atual (para controlar botão de envio)
   String _currentText = '';
+
+  // ID da mensagem de loading temporária
+  String? _typingMessageId;
 
   @override
   void initState() {
@@ -234,8 +238,43 @@ class _ChatScreenState extends State<ChatScreen> {
     }
   }
 
+  /// Adiciona mensagem de loading temporária (indicador de digitação)
+  void _addTypingMessage() {
+    if (_typingMessageId != null) {
+      // Já existe uma mensagem de loading, não adiciona outra
+      return;
+    }
+
+    final loadingId = _uuid.v4();
+    _typingMessageId = loadingId;
+
+    final typingMessage = types.CustomMessage(
+      author: _bot,
+      createdAt: DateTime.now().millisecondsSinceEpoch,
+      id: loadingId,
+      metadata: const {'isTyping': true},
+    );
+
+    setState(() {
+      _messages.insert(0, typingMessage);
+    });
+  }
+
+  /// Remove a mensagem de loading temporária
+  void _removeTypingMessage() {
+    if (_typingMessageId == null) return;
+
+    setState(() {
+      _messages.removeWhere((msg) => msg.id == _typingMessageId);
+      _typingMessageId = null;
+    });
+  }
+
   /// Envia mensagem de texto para o bot via N8N
   Future<void> _sendTextToBot(String text) async {
+    // Adiciona mensagem de loading temporária
+    _addTypingMessage();
+
     setState(() {
       _isLoading = true;
       _botIsTyping = true; // Bot está processando
@@ -248,6 +287,9 @@ class _ChatScreenState extends State<ChatScreen> {
         _user.id,
       );
 
+      // Remove mensagem de loading
+      _removeTypingMessage();
+
       // Se retornou null, significa que foi para fila offline
       if (response == null) {
         _showInfo('Sem conexão. Mensagem será enviada quando conectar.');
@@ -257,6 +299,9 @@ class _ChatScreenState extends State<ChatScreen> {
       // Adiciona resposta do bot
       _addBotResponse(response);
     } catch (e) {
+      // Remove mensagem de loading
+      _removeTypingMessage();
+
       // Verifica se é erro de fila offline
       if (e.toString().contains('Sem conexão') || e.toString().contains('fila')) {
         _showInfo('Mensagem adicionada à fila offline');
@@ -273,6 +318,9 @@ class _ChatScreenState extends State<ChatScreen> {
 
   /// Envia imagem para o bot via N8N
   Future<void> _sendImageToBot(File imageFile) async {
+    // Adiciona mensagem de loading temporária
+    _addTypingMessage();
+
     setState(() {
       _isLoading = true;
       _botIsTyping = true;
@@ -285,6 +333,9 @@ class _ChatScreenState extends State<ChatScreen> {
         _user.id,
       );
 
+      // Remove mensagem de loading
+      _removeTypingMessage();
+
       // Se retornou null, significa que foi para fila offline
       if (response == null) {
         _showInfo('Sem conexão. Imagem será enviada quando conectar.');
@@ -295,6 +346,9 @@ class _ChatScreenState extends State<ChatScreen> {
       _addBotResponse(response);
       _showSuccess('Imagem enviada com sucesso!');
     } catch (e) {
+      // Remove mensagem de loading
+      _removeTypingMessage();
+
       // Verifica se é erro de fila offline
       if (e.toString().contains('Sem conexão') || e.toString().contains('fila')) {
         _showInfo('Imagem adicionada à fila offline');
@@ -311,6 +365,9 @@ class _ChatScreenState extends State<ChatScreen> {
 
   /// Envia áudio para o bot via N8N
   Future<void> _sendAudioToBot(File audioFile) async {
+    // Adiciona mensagem de loading temporária
+    _addTypingMessage();
+
     setState(() {
       _isLoading = true;
       _botIsTyping = true;
@@ -324,6 +381,9 @@ class _ChatScreenState extends State<ChatScreen> {
         _user.id,
       );
 
+      // Remove mensagem de loading
+      _removeTypingMessage();
+
       // Se retornou null, significa que foi para fila offline
       if (response == null) {
         _showInfo('Sem conexão. Áudio será enviado quando conectar.');
@@ -334,6 +394,9 @@ class _ChatScreenState extends State<ChatScreen> {
       _addBotResponse(response);
       _showSuccess('Áudio enviado com sucesso!');
     } catch (e) {
+      // Remove mensagem de loading
+      _removeTypingMessage();
+
       // Verifica se é erro de fila offline
       if (e.toString().contains('Sem conexão') || e.toString().contains('fila')) {
         _showInfo('Áudio adicionado à fila offline');
@@ -387,33 +450,59 @@ class _ChatScreenState extends State<ChatScreen> {
     }
   }
 
-  /// Mostra mensagem de erro
+  /// Mostra mensagem de erro no topo da tela
   void _showError(String message) {
     if (!mounted) return;
 
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
-        content: Text(message),
+        content: Row(
+          children: [
+            const Icon(Icons.error_outline, color: Colors.white),
+            const SizedBox(width: 12),
+            Expanded(child: Text(message)),
+          ],
+        ),
         backgroundColor: Colors.red,
         behavior: SnackBarBehavior.floating,
+        margin: EdgeInsets.only(
+          top: MediaQuery.of(context).padding.top + 16,
+          left: 16,
+          right: 16,
+          bottom: MediaQuery.of(context).size.height - 100,
+        ),
+        duration: const Duration(seconds: 3),
       ),
     );
   }
 
-  /// Mostra mensagem de informação
+  /// Mostra mensagem de informação no topo da tela
   void _showInfo(String message) {
     if (!mounted) return;
 
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
-        content: Text(message),
+        content: Row(
+          children: [
+            const Icon(Icons.info_outline, color: Colors.white),
+            const SizedBox(width: 12),
+            Expanded(child: Text(message)),
+          ],
+        ),
         backgroundColor: Colors.blue,
         behavior: SnackBarBehavior.floating,
+        margin: EdgeInsets.only(
+          top: MediaQuery.of(context).padding.top + 16,
+          left: 16,
+          right: 16,
+          bottom: MediaQuery.of(context).size.height - 100,
+        ),
+        duration: const Duration(seconds: 3),
       ),
     );
   }
 
-  /// Mostra mensagem de sucesso
+  /// Mostra mensagem de sucesso no topo da tela
   void _showSuccess(String message) {
     if (!mounted) return;
 
@@ -422,12 +511,18 @@ class _ChatScreenState extends State<ChatScreen> {
         content: Row(
           children: [
             const Icon(Icons.check_circle, color: Colors.white),
-            const SizedBox(width: 8),
+            const SizedBox(width: 12),
             Expanded(child: Text(message)),
           ],
         ),
         backgroundColor: Colors.green,
         behavior: SnackBarBehavior.floating,
+        margin: EdgeInsets.only(
+          top: MediaQuery.of(context).padding.top + 16,
+          left: 16,
+          right: 16,
+          bottom: MediaQuery.of(context).size.height - 100,
+        ),
         duration: const Duration(seconds: 2),
       ),
     );
@@ -675,13 +770,6 @@ class _ChatScreenState extends State<ChatScreen> {
       ),
       body: Column(
         children: [
-          // Indicador "digitando..." do bot com skeleton
-          if (_botIsTyping)
-            Container(
-              padding: const EdgeInsets.symmetric(vertical: 8),
-              color: Colors.grey[50],
-              child: const BotTypingSkeletonLoading(),
-            ),
           // Chat principal com Pull to Refresh
           Expanded(
             child: _isLoadingHistory
@@ -744,6 +832,36 @@ class _ChatScreenState extends State<ChatScreen> {
                           // Customiza a exibição de cada mensagem para incluir timestamp
                           customDateHeaderText: (DateTime dateTime) {
                             return timeago.format(dateTime, locale: 'pt_BR');
+                          },
+                          // Builder para mensagens customizadas (loading indicator)
+                          customMessageBuilder: (types.CustomMessage message, {required int messageWidth}) {
+                            // Verifica se é uma mensagem de loading
+                            if (message.metadata?['isTyping'] == true) {
+                              return Container(
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 16,
+                                  vertical: 12,
+                                ),
+                                margin: const EdgeInsets.symmetric(
+                                  horizontal: 8,
+                                  vertical: 4,
+                                ),
+                                decoration: BoxDecoration(
+                                  color: isDark
+                                      ? AppThemes.darkBotBubble
+                                      : AppThemes.lightBotBubble,
+                                  borderRadius: BorderRadius.circular(20),
+                                ),
+                                child: TypingIndicator(
+                                  dotColor: isDark
+                                      ? AppThemes.darkBotText
+                                      : AppThemes.lightBotText,
+                                ),
+                              );
+                            }
+                            // Para outros tipos de mensagens customizadas, retorna null
+                            // (usa o builder padrão)
+                            return null;
                           },
                           // Input customizado estilo WhatsApp
                           customBottomWidget: _buildCustomInput(isDark),
