@@ -859,8 +859,7 @@ class _ChatScreenState extends State<ChatScreen> {
                           // Carregar mais mensagens quando chegar perto do fim
                           onEndReached: _handleLoadMore,
                           onEndReachedThreshold: 0.7, // Carrega quando estiver a 70% do fim
-                          // Otimizações de performance
-                          scrollPhysics: const ClampingScrollPhysics(),
+                          // Scroll suave e natural (usa o padrão da plataforma)
                           // Tema personalizado baseado no tema atual
                           theme: DefaultChatTheme(
                             // Cor das mensagens do usuário
@@ -1000,10 +999,7 @@ class _ChatScreenState extends State<ChatScreen> {
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
       decoration: BoxDecoration(
         color: isDark ? AppThemes.darkSurface : Colors.white,
-        borderRadius: const BorderRadius.only(
-          topLeft: Radius.circular(16),
-          topRight: Radius.circular(16),
-        ),
+        borderRadius: BorderRadius.circular(16), // Arredonda todos os lados
         boxShadow: [
           BoxShadow(
             color: Colors.black.withOpacity(0.05),
