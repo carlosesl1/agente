@@ -48,12 +48,34 @@ class _ChatScreenState extends State<ChatScreen> {
   // Carregando histórico do banco
   bool _isLoadingHistory = true;
 
+  // Controller para o campo de texto
+  final TextEditingController _textController = TextEditingController();
+
+  // Flag se está gravando áudio
+  bool _isRecording = false;
+
+  // Texto atual (para controlar botão de envio)
+  String _currentText = '';
+
   @override
   void initState() {
     super.initState();
     _initializeUsers();
     _configureTimeago();
     _loadMessagesFromDatabase();
+
+    // Listener para o campo de texto
+    _textController.addListener(() {
+      setState(() {
+        _currentText = _textController.text;
+      });
+    });
+  }
+
+  @override
+  void dispose() {
+    _textController.dispose();
+    super.dispose();
   }
 
   /// Configura formatação de timestamps em português
@@ -294,8 +316,9 @@ class _ChatScreenState extends State<ChatScreen> {
     });
 
     try {
-      // Envia para o N8N (usando base64)
-      final response = await N8nService.sendAudio(
+      // Envia para o N8N como arquivo MP4 (multipart/form-data)
+      // para permitir transcrição no N8N
+      final response = await N8nService.sendAudioMultipart(
         audioFile,
         _user.id,
       );
@@ -519,63 +542,7 @@ class _ChatScreenState extends State<ChatScreen> {
     }
   }
 
-  /// Grava e envia um áudio
-  Future<void> _handleAudioRecording() async {
-    try {
-      // Verifica se já está gravando
-      if (AudioService.isRecording) {
-        // Para a gravação
-        final audioFile = await AudioService.stopRecording();
-
-        if (audioFile != null) {
-          // Valida o áudio
-          if (!await AudioService.isValidAudio(audioFile)) {
-            _showError('Formato de áudio inválido');
-            return;
-          }
-
-          // Valida tamanho (max 5 MB)
-          if (!await AudioService.isAudioSizeValid(audioFile, maxSizeInMB: 5)) {
-            _showError('Áudio muito grande. Máximo: 5 MB');
-            return;
-          }
-
-          // Mostra o áudio no chat
-          final audioMessage = types.FileMessage(
-            author: _user,
-            createdAt: DateTime.now().millisecondsSinceEpoch,
-            id: _uuid.v4(),
-            name: audioFile.path.split('/').last,
-            size: await audioFile.length(),
-            uri: audioFile.path,
-            mimeType: 'audio/m4a',
-          );
-
-          _addMessage(audioMessage);
-
-          // Envia para o bot
-          _sendAudioToBot(audioFile);
-
-          _showInfo('Áudio gravado com sucesso');
-        }
-      } else {
-        // Inicia a gravação
-        final started = await AudioService.startRecording();
-
-        if (started) {
-          _showInfo('Gravando... Toque novamente para parar');
-        } else {
-          _showError('Não foi possível iniciar gravação');
-        }
-      }
-    } catch (e) {
-      _showError('Erro ao gravar áudio: $e');
-      // Cancela gravação em caso de erro
-      await AudioService.cancelRecording();
-    }
-  }
-
-  /// Mostra opções de anexo (imagem ou áudio)
+  /// Mostra opções de anexo (apenas imagens)
   void _handleAttachmentPressed() {
     showModalBottomSheet<void>(
       context: context,
@@ -631,24 +598,6 @@ class _ChatScreenState extends State<ChatScreen> {
                 onTap: () {
                   Navigator.pop(context);
                   _handleCameraCapture();
-                },
-              ),
-              const SizedBox(height: 8),
-              // Opção: Áudio
-              ListTile(
-                leading: Container(
-                  padding: const EdgeInsets.all(8),
-                  decoration: BoxDecoration(
-                    color: Colors.orange[50],
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                  child: const Icon(Icons.mic, color: Colors.orange),
-                ),
-                title: const Text('Áudio'),
-                subtitle: const Text('Gravar mensagem de voz'),
-                onTap: () {
-                  Navigator.pop(context);
-                  _handleAudioRecording();
                 },
               ),
             ],
@@ -730,7 +679,6 @@ class _ChatScreenState extends State<ChatScreen> {
                         child: Chat(
                           messages: _messages,
                           onSendPressed: _handleSendPressed,
-                          onAttachmentPressed: _handleAttachmentPressed,
                           user: _user,
                           // Tema personalizado baseado no tema atual
                           theme: DefaultChatTheme(
@@ -781,6 +729,8 @@ class _ChatScreenState extends State<ChatScreen> {
                           customDateHeaderText: (DateTime dateTime) {
                             return timeago.format(dateTime, locale: 'pt_BR');
                           },
+                          // Input customizado estilo WhatsApp
+                          customBottomWidget: _buildCustomInput(isDark),
                         ),
                       ),
           ),
@@ -831,6 +781,217 @@ class _ChatScreenState extends State<ChatScreen> {
         ),
       ),
     );
+  }
+
+  /// Constrói o input customizado estilo WhatsApp
+  Widget _buildCustomInput(bool isDark) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
+      decoration: BoxDecoration(
+        color: isDark ? AppThemes.darkSurface : Colors.white,
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.05),
+            blurRadius: 4,
+            offset: const Offset(0, -2),
+          ),
+        ],
+      ),
+      child: SafeArea(
+        child: Row(
+          children: [
+            // Campo de texto
+            Expanded(
+              child: Container(
+                decoration: BoxDecoration(
+                  color: isDark
+                      ? AppThemes.darkInputBackground
+                      : AppThemes.lightInputBackground,
+                  borderRadius: BorderRadius.circular(24),
+                ),
+                child: Row(
+                  children: [
+                    // Botão de anexo (imagem)
+                    IconButton(
+                      icon: Icon(
+                        Icons.add_photo_alternate_outlined,
+                        color: isDark
+                            ? AppThemes.darkInputText.withOpacity(0.7)
+                            : AppThemes.lightInputText.withOpacity(0.7),
+                      ),
+                      onPressed: _handleAttachmentPressed,
+                      tooltip: 'Enviar imagem',
+                    ),
+                    // Campo de texto
+                    Expanded(
+                      child: TextField(
+                        controller: _textController,
+                        style: TextStyle(
+                          color: isDark
+                              ? AppThemes.darkInputText
+                              : AppThemes.lightInputText,
+                          fontSize: 16,
+                        ),
+                        decoration: InputDecoration(
+                          hintText: 'Digite uma mensagem',
+                          hintStyle: TextStyle(
+                            color: isDark
+                                ? AppThemes.darkInputText.withOpacity(0.5)
+                                : AppThemes.lightInputText.withOpacity(0.5),
+                          ),
+                          border: InputBorder.none,
+                          contentPadding: const EdgeInsets.symmetric(
+                            horizontal: 4,
+                            vertical: 10,
+                          ),
+                        ),
+                        maxLines: 5,
+                        minLines: 1,
+                        textCapitalization: TextCapitalization.sentences,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+            const SizedBox(width: 8),
+            // Botão de ação (microfone ou enviar)
+            _buildActionButton(isDark),
+          ],
+        ),
+      ),
+    );
+  }
+
+  /// Constrói o botão de ação (microfone ou enviar)
+  Widget _buildActionButton(bool isDark) {
+    // Se há texto, mostra botão de enviar
+    if (_currentText.trim().isNotEmpty) {
+      return Material(
+        color: AppThemes.lightPrimary,
+        borderRadius: BorderRadius.circular(24),
+        child: InkWell(
+          borderRadius: BorderRadius.circular(24),
+          onTap: () {
+            if (_currentText.trim().isNotEmpty) {
+              // Envia a mensagem
+              _handleSendPressed(types.PartialText(text: _currentText.trim()));
+              // Limpa o campo
+              _textController.clear();
+            }
+          },
+          child: Container(
+            width: 48,
+            height: 48,
+            alignment: Alignment.center,
+            child: const Icon(
+              Icons.send,
+              color: Colors.white,
+              size: 22,
+            ),
+          ),
+        ),
+      );
+    }
+
+    // Se não há texto, mostra botão de microfone
+    return Material(
+      color: _isRecording ? Colors.red : AppThemes.lightPrimary,
+      borderRadius: BorderRadius.circular(24),
+      child: InkWell(
+        borderRadius: BorderRadius.circular(24),
+        onTap: _handleMicrophonePressed,
+        onLongPress: _handleMicrophonePressed,
+        child: Container(
+          width: 48,
+          height: 48,
+          alignment: Alignment.center,
+          child: Icon(
+            _isRecording ? Icons.stop : Icons.mic,
+            color: Colors.white,
+            size: 22,
+          ),
+        ),
+      ),
+    );
+  }
+
+  /// Manipula o pressionamento do botão de microfone
+  Future<void> _handleMicrophonePressed() async {
+    if (_isRecording) {
+      // Para a gravação
+      await _stopRecordingAndSend();
+    } else {
+      // Inicia a gravação
+      await _startRecording();
+    }
+  }
+
+  /// Inicia a gravação de áudio
+  Future<void> _startRecording() async {
+    try {
+      final hasPermission = await AudioService.requestPermissions();
+      if (!hasPermission) {
+        _showError('Permissão de microfone necessária');
+        return;
+      }
+
+      await AudioService.startRecording();
+      setState(() {
+        _isRecording = true;
+      });
+
+      _showInfo('Gravando áudio...');
+    } catch (e) {
+      _showError('Erro ao iniciar gravação: $e');
+    }
+  }
+
+  /// Para a gravação e envia o áudio
+  Future<void> _stopRecordingAndSend() async {
+    try {
+      setState(() {
+        _isRecording = false;
+      });
+
+      final audioFile = await AudioService.stopRecording();
+
+      if (audioFile != null) {
+        // Valida o áudio
+        if (!await AudioService.isValidAudio(audioFile)) {
+          _showError('Áudio muito curto (mínimo 1 segundo)');
+          return;
+        }
+
+        if (!await AudioService.isAudioSizeValid(audioFile, maxSizeInMB: 5)) {
+          _showError('Áudio muito grande (máximo 5MB)');
+          return;
+        }
+
+        // Cria mensagem de áudio
+        final audioMessage = types.FileMessage(
+          author: _user,
+          createdAt: DateTime.now().millisecondsSinceEpoch,
+          id: _uuid.v4(),
+          name: audioFile.path.split('/').last,
+          size: await audioFile.length(),
+          uri: audioFile.path,
+          mimeType: 'audio/m4a',
+        );
+
+        _addMessage(audioMessage);
+
+        // Envia para o bot
+        _sendAudioToBot(audioFile);
+      } else {
+        _showError('Erro ao gravar áudio');
+      }
+    } catch (e) {
+      _showError('Erro ao processar áudio: $e');
+      setState(() {
+        _isRecording = false;
+      });
+    }
   }
 }
 
