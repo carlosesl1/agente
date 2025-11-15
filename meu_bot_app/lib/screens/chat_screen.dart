@@ -4,6 +4,7 @@ import 'package:flutter_chat_ui/flutter_chat_ui.dart';
 import 'package:flutter_chat_types/flutter_chat_types.dart' as types;
 import 'package:uuid/uuid.dart';
 import 'package:timeago/timeago.dart' as timeago;
+import 'package:provider/provider.dart';
 import '../services/supabase_service.dart';
 import '../services/n8n_service.dart';
 import '../services/media_service.dart';
@@ -11,6 +12,8 @@ import '../services/audio_service.dart';
 import '../services/connectivity_service.dart';
 import '../services/message_service.dart';
 import '../widgets/skeleton_loading.dart';
+import '../theme/app_themes.dart';
+import '../theme/theme_provider.dart';
 import 'login_screen.dart';
 
 /// Tela principal de chat
@@ -657,10 +660,26 @@ class _ChatScreenState extends State<ChatScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final themeProvider = Provider.of<ThemeProvider>(context);
+    final isDark = themeProvider.isDarkMode;
+
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Meu Bot'),
-        backgroundColor: Theme.of(context).colorScheme.inversePrimary,
+        title: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Container(
+              padding: const EdgeInsets.all(6),
+              decoration: BoxDecoration(
+                color: AppThemes.lightPrimary.withOpacity(0.1),
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: const Icon(Icons.smart_toy, size: 20),
+            ),
+            const SizedBox(width: 8),
+            const Text('Meu Bot'),
+          ],
+        ),
         actions: [
           // Indicador de loading
           if (_isLoading)
@@ -670,10 +689,19 @@ class _ChatScreenState extends State<ChatScreen> {
                 child: SizedBox(
                   width: 20,
                   height: 20,
-                  child: CircularProgressIndicator(strokeWidth: 2),
+                  child: CircularProgressIndicator(
+                    strokeWidth: 2,
+                    color: Colors.white,
+                  ),
                 ),
               ),
             ),
+          // Toggle de tema
+          IconButton(
+            icon: Icon(themeProvider.themeIcon),
+            tooltip: isDark ? 'Modo Claro' : 'Modo Escuro',
+            onPressed: () => themeProvider.toggleTheme(),
+          ),
           // Botão de logout
           IconButton(
             icon: const Icon(Icons.logout),
@@ -704,22 +732,43 @@ class _ChatScreenState extends State<ChatScreen> {
                           onSendPressed: _handleSendPressed,
                           onAttachmentPressed: _handleAttachmentPressed,
                           user: _user,
-                          // Tema personalizado
+                          // Tema personalizado baseado no tema atual
                           theme: DefaultChatTheme(
-                            // Cor das mensagens do usuário (azul)
-                            primaryColor: Colors.blue,
-                            // Cor das mensagens do bot (cinza)
-                            secondaryColor: Colors.grey[200]!,
+                            // Cor das mensagens do usuário
+                            primaryColor: isDark
+                                ? AppThemes.darkUserBubble
+                                : AppThemes.lightUserBubble,
+                            // Cor das mensagens do bot
+                            secondaryColor: isDark
+                                ? AppThemes.darkBotBubble
+                                : AppThemes.lightBotBubble,
                             // Cor de fundo
-                            backgroundColor: Colors.white,
+                            backgroundColor: isDark
+                                ? AppThemes.darkBackground
+                                : AppThemes.lightBackground,
                             // Cor do texto de entrada
-                            inputBackgroundColor: Colors.grey[100]!,
-                            inputTextColor: Colors.black87,
+                            inputBackgroundColor: isDark
+                                ? AppThemes.darkInputBackground
+                                : AppThemes.lightInputBackground,
+                            inputTextColor: isDark
+                                ? AppThemes.darkInputText
+                                : AppThemes.lightInputText,
                             // Bordas arredondadas
                             messageBorderRadius: 20,
                             // Padding das mensagens
                             messageInsetsVertical: 12,
                             messageInsetsHorizontal: 16,
+                            // Cor do texto nas mensagens
+                            sentMessageBodyTextStyle: TextStyle(
+                              color: AppThemes.lightUserText,
+                              fontSize: 16,
+                            ),
+                            receivedMessageBodyTextStyle: TextStyle(
+                              color: isDark
+                                  ? AppThemes.darkBotText
+                                  : AppThemes.lightBotText,
+                              fontSize: 16,
+                            ),
                           ),
                           // Textos em português
                           l10n: const ChatL10nPt(),

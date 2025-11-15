@@ -1,7 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
+import 'package:provider/provider.dart';
 import 'services/supabase_service.dart';
 import 'services/notification_service.dart';
+import 'theme/app_themes.dart';
+import 'theme/theme_provider.dart';
 import 'screens/splash_screen.dart';
 
 /// Ponto de entrada da aplicação
@@ -62,24 +65,42 @@ void main() async {
     print('Verifique se você adicionou o google-services.json');
   }
 
-  runApp(const MyApp());
+  // Inicializa o ThemeProvider
+  final themeProvider = ThemeProvider();
+  await themeProvider.initialize();
+
+  runApp(MyApp(themeProvider: themeProvider));
 }
 
 class MyApp extends StatelessWidget {
-  const MyApp({super.key});
+  final ThemeProvider themeProvider;
+
+  const MyApp({
+    super.key,
+    required this.themeProvider,
+  });
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      title: 'Meu Bot App',
-      debugShowCheckedModeBanner: false,
-      theme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(seedColor: Colors.blue),
-        useMaterial3: true,
+    return ChangeNotifierProvider.value(
+      value: themeProvider,
+      child: Consumer<ThemeProvider>(
+        builder: (context, theme, _) {
+          return MaterialApp(
+            title: 'Meu Bot App',
+            debugShowCheckedModeBanner: false,
+
+            // Temas customizados
+            theme: AppThemes.lightTheme,
+            darkTheme: AppThemes.darkTheme,
+            themeMode: theme.themeMode,
+
+            // Tela inicial: Splash Screen com animação
+            // O SplashScreen verifica autenticação e redireciona automaticamente
+            home: const SplashScreen(),
+          );
+        },
       ),
-      // Tela inicial: Splash Screen com animação
-      // O SplashScreen verifica autenticação e redireciona automaticamente
-      home: const SplashScreen(),
     );
   }
 }

@@ -85,6 +85,9 @@ dependencies:
   # Skeleton screens com animação shimmer
   shimmer: ^3.0.0
 
+  # Gerenciamento de estado
+  provider: ^6.1.2
+
 dev_dependencies:
   flutter_test:
     sdk: flutter
