@@ -7,6 +7,7 @@ import '../config/app_config.dart';
 import 'retry_service.dart';
 import 'offline_queue_service.dart';
 import 'connectivity_service.dart';
+import 'preferences_service.dart';
 
 /// Serviço de integração com N8N
 ///
@@ -53,6 +54,14 @@ class N8nService {
   /// Getter para acessar conectividade
   static ConnectivityService get connectivity => _connectivity;
 
+  /// Obtém a URL do webhook N8N (usa configuração personalizada se existir)
+  ///
+  /// Retorna a URL configurada pelo usuário nas preferências,
+  /// ou a URL padrão do AppConfig se nenhuma personalização existir
+  static Future<String> _getWebhookUrl() async {
+    return await PreferencesService.getN8nWebhookUrl();
+  }
+
   /// Inicializa o N8nService com suporte offline
   ///
   /// Deve ser chamado no início do app
@@ -96,8 +105,9 @@ class N8nService {
 
       print('📤 Enviando mensagem da fila: ${message.id}');
 
+      final webhookUrl = await _getWebhookUrl();
       final response = await _dio.post(
-        AppConfig.n8nWebhookUrl,
+        webhookUrl,
         data: payload,
       );
 
@@ -161,8 +171,9 @@ class N8nService {
 
           print('📤 Enviando mensagem para N8N: $message');
 
+          final webhookUrl = await _getWebhookUrl();
           final response = await _dio.post(
-            AppConfig.n8nWebhookUrl,
+            webhookUrl,
             data: payload,
           );
 
@@ -256,8 +267,9 @@ class N8nService {
 
       print('📤 Enviando imagem para N8N (${bytes.length} bytes)');
 
+      final webhookUrl = await _getWebhookUrl();
       final response = await _dio.post(
-        AppConfig.n8nWebhookUrl,
+        webhookUrl,
         data: payload,
       );
 
@@ -315,8 +327,9 @@ class N8nService {
 
       print('📤 Enviando imagem (multipart) para N8N');
 
+      final webhookUrl = await _getWebhookUrl();
       final response = await _dio.post(
-        AppConfig.n8nWebhookUrl,
+        webhookUrl,
         data: formData,
       );
 
@@ -388,8 +401,9 @@ class N8nService {
 
       print('📤 Enviando áudio para N8N (${bytes.length} bytes)');
 
+      final webhookUrl = await _getWebhookUrl();
       final response = await _dio.post(
-        AppConfig.n8nWebhookUrl,
+        webhookUrl,
         data: payload,
       );
 
@@ -447,8 +461,9 @@ class N8nService {
 
       print('📤 Enviando áudio (multipart) para N8N');
 
+      final webhookUrl = await _getWebhookUrl();
       final response = await _dio.post(
-        AppConfig.n8nWebhookUrl,
+        webhookUrl,
         data: formData,
       );
 
@@ -509,8 +524,9 @@ class N8nService {
     try {
       print('🔍 Testando conexão com N8N...');
 
+      final webhookUrl = await _getWebhookUrl();
       final response = await _dio.post(
-        AppConfig.n8nWebhookUrl,
+        webhookUrl,
         data: {
           'userId': 'test',
           'messageType': 'text',

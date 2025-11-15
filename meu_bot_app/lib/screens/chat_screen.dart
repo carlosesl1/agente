@@ -15,6 +15,7 @@ import '../widgets/skeleton_loading.dart';
 import '../theme/app_themes.dart';
 import '../theme/theme_provider.dart';
 import 'login_screen.dart';
+import 'settings_screen.dart';
 
 /// Tela principal de chat
 ///
@@ -650,6 +651,19 @@ class _ChatScreenState extends State<ChatScreen> {
             icon: Icon(themeProvider.themeIcon),
             tooltip: isDark ? 'Modo Claro' : 'Modo Escuro',
             onPressed: () => themeProvider.toggleTheme(),
+          ),
+          // Botão de configurações
+          IconButton(
+            icon: const Icon(Icons.settings),
+            tooltip: 'Configurações',
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => const SettingsScreen(),
+                ),
+              );
+            },
           ),
           // Botão de logout
           IconButton(

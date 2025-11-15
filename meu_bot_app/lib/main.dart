@@ -3,6 +3,7 @@ import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:provider/provider.dart';
 import 'services/supabase_service.dart';
 import 'services/notification_service.dart';
+import 'services/preferences_service.dart';
 import 'theme/app_themes.dart';
 import 'theme/theme_provider.dart';
 import 'screens/splash_screen.dart';
@@ -63,6 +64,15 @@ void main() async {
   } catch (e) {
     print('✗ Erro ao inicializar Firebase: $e');
     print('Verifique se você adicionou o google-services.json');
+  }
+
+  // ========== INICIALIZAÇÃO DAS PREFERÊNCIAS ==========
+  // Inicializa SharedPreferences para configurações personalizadas
+  try {
+    await PreferencesService.initialize();
+    print('✓ Preferências inicializadas');
+  } catch (e) {
+    print('✗ Erro ao inicializar preferências: $e');
   }
 
   // Inicializa o ThemeProvider
