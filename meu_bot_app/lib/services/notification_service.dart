@@ -1,8 +1,13 @@
 import 'dart:io';
+import 'dart:convert';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:permission_handler/permission_handler.dart';
+import 'package:dio/dio.dart';
+import '../config/app_config.dart';
+import 'supabase_service.dart';
+import 'message_service.dart';
 
 /// Serviço de notificações push com Firebase Cloud Messaging
 ///
@@ -138,14 +143,20 @@ class NotificationService {
     print('Corpo: ${message.notification?.body}');
     print('Data: ${message.data}');
 
+    // Processa e salva a mensagem no banco
+    await _processIncomingMessage(message);
+
     // Mostra notificação local (mesmo com app aberto)
     await _showLocalNotification(message);
   }
 
   /// Handler para mensagens quando app está em BACKGROUND (minimizado)
-  static void _handleBackgroundMessage(RemoteMessage message) {
+  static Future<void> _handleBackgroundMessage(RemoteMessage message) async {
     print('📩 Notificação clicada (app em background)');
     print('Data: ${message.data}');
+
+    // Processa e salva a mensagem no banco
+    await _processIncomingMessage(message);
 
     // Abre o chat
     if (_onNotificationOpenedApp != null) {
@@ -154,13 +165,60 @@ class NotificationService {
   }
 
   /// Handler para mensagens quando app estava TERMINATED (fechado)
-  static void _handleTerminatedMessage(RemoteMessage message) {
+  static Future<void> _handleTerminatedMessage(RemoteMessage message) async {
     print('📩 App aberto via notificação (app estava fechado)');
     print('Data: ${message.data}');
+
+    // Processa e salva a mensagem no banco
+    await _processIncomingMessage(message);
 
     // Abre o chat
     if (_onNotificationOpenedApp != null) {
       _onNotificationOpenedApp!(message.data);
+    }
+  }
+
+  /// Processa mensagem recebida via push e salva no banco
+  static Future<void> _processIncomingMessage(RemoteMessage message) async {
+    try {
+      print('⚙️  Processando mensagem recebida...');
+
+      // Extrai dados da mensagem
+      final data = message.data;
+      final messageText = data['message'] ?? message.notification?.body ?? '';
+      final messageType = data['type'] ?? 'text';
+      final userId = data['userId'];
+
+      if (messageText.isEmpty) {
+        print('⚠️  Mensagem vazia, ignorando');
+        return;
+      }
+
+      // Salva mensagem no Supabase
+      final user = SupabaseService.getCurrentUser();
+      if (user != null) {
+        print('💾 Salvando mensagem no banco...');
+
+        // Cria mensagem do bot
+        final botMessage = {
+          'user_id': user.id,
+          'text': messageText,
+          'type': messageType,
+          'author_id': 'bot',
+          'created_at': DateTime.now().toIso8601String(),
+        };
+
+        // Salva no Supabase
+        await SupabaseService.client
+            .from('messages')
+            .insert(botMessage);
+
+        print('✓ Mensagem salva no banco');
+      } else {
+        print('⚠️  Usuário não autenticado, mensagem não salva');
+      }
+    } catch (e) {
+      print('❌ Erro ao processar mensagem: $e');
     }
   }
 
@@ -268,15 +326,13 @@ class NotificationService {
 
   // ========== BACKEND ==========
 
-  /// Salva o token FCM no backend (N8N)
+  /// Salva o token FCM no backend (Supabase)
   ///
   /// Este método deve ser chamado após o usuário fazer login
   /// para associar o token ao usuário
   ///
   /// [token] - Token FCM do dispositivo
   /// [userId] - ID do usuário (do Supabase)
-  ///
-  /// TODO: Implementar integração com N8N para salvar o token
   ///
   /// Exemplo de uso:
   /// ```dart
@@ -293,25 +349,21 @@ class NotificationService {
     required String userId,
   }) async {
     try {
-      print('💾 Salvando token no backend...');
+      print('💾 Salvando token FCM no backend...');
       print('Token: $token');
       print('UserID: $userId');
 
-      // TODO: Implementar chamada ao N8N aqui
-      // Exemplo:
-      // await dio.post(
-      //   'https://seu-n8n.com/webhook/save-fcm-token',
-      //   data: {
-      //     'userId': userId,
-      //     'fcmToken': token,
-      //     'platform': Platform.isAndroid ? 'android' : 'ios',
-      //     'timestamp': DateTime.now().toIso8601String(),
-      //   },
-      // );
+      // Salva o token no Supabase (tabela fcm_tokens)
+      await SupabaseService.client.from('fcm_tokens').upsert({
+        'user_id': userId,
+        'fcm_token': token,
+        'platform': Platform.isAndroid ? 'android' : 'ios',
+        'updated_at': DateTime.now().toIso8601String(),
+      });
 
-      print('✓ Token salvo no backend (simulado)');
-      print('⚠️  Implementar integração real com N8N');
+      print('✓ Token FCM salvo no Supabase');
     } catch (e) {
+      print('❌ Erro ao salvar token no backend: $e');
       throw Exception('Erro ao salvar token no backend: $e');
     }
   }
@@ -323,17 +375,17 @@ class NotificationService {
     required String userId,
   }) async {
     try {
-      print('🗑️  Removendo token do backend...');
+      print('🗑️  Removendo token FCM do backend...');
 
-      // TODO: Implementar chamada ao N8N aqui
-      // await dio.post(
-      //   'https://seu-n8n.com/webhook/remove-fcm-token',
-      //   data: {'userId': userId},
-      // );
+      // Remove token do Supabase
+      await SupabaseService.client
+          .from('fcm_tokens')
+          .delete()
+          .eq('user_id', userId);
 
-      print('✓ Token removido do backend (simulado)');
+      print('✓ Token removido do backend');
     } catch (e) {
-      print('Erro ao remover token: $e');
+      print('❌ Erro ao remover token: $e');
     }
   }
 
@@ -468,7 +520,28 @@ Future<void> firebaseMessagingBackgroundHandler(RemoteMessage message) async {
   print('📩 Notificação em background: ${message.messageId}');
   print('Título: ${message.notification?.title}');
   print('Corpo: ${message.notification?.body}');
+  print('Data: ${message.data}');
 
-  // Aqui você pode processar a mensagem
-  // Por exemplo: salvar no banco de dados local
+  // Processa e salva a mensagem no banco
+  try {
+    final data = message.data;
+    final messageText = data['message'] ?? message.notification?.body ?? '';
+    final messageType = data['type'] ?? 'text';
+    final userId = data['userId'];
+
+    if (messageText.isNotEmpty && userId != null) {
+      // Salva mensagem no Supabase
+      await SupabaseService.client.from('messages').insert({
+        'user_id': userId,
+        'text': messageText,
+        'type': messageType,
+        'author_id': 'bot',
+        'created_at': DateTime.now().toIso8601String(),
+      });
+
+      print('✓ Mensagem salva no banco (background)');
+    }
+  } catch (e) {
+    print('❌ Erro ao processar mensagem em background: $e');
+  }
 }
