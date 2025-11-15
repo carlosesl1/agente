@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import '../services/supabase_service.dart';
+import '../theme/theme_provider.dart';
+import '../theme/app_themes.dart';
 import 'register_screen.dart';
 
 /// Tela de Login
@@ -120,8 +123,11 @@ class _LoginScreenState extends State<LoginScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final themeProvider = Provider.of<ThemeProvider>(context);
+    final isDark = themeProvider.isDarkMode;
+
     return Scaffold(
-      backgroundColor: Colors.grey[50],
+      backgroundColor: isDark ? AppThemes.darkBackground : AppThemes.lightBackground,
       body: SafeArea(
         child: Center(
           child: SingleChildScrollView(
@@ -137,7 +143,7 @@ class _LoginScreenState extends State<LoginScreen> {
                     width: 100,
                     height: 100,
                     decoration: BoxDecoration(
-                      color: Colors.blue,
+                      color: AppThemes.lightPrimary,
                       borderRadius: BorderRadius.circular(20),
                     ),
                     child: const Icon(
@@ -153,7 +159,7 @@ class _LoginScreenState extends State<LoginScreen> {
                     'Bem-vindo de volta!',
                     style: Theme.of(context).textTheme.headlineMedium?.copyWith(
                           fontWeight: FontWeight.bold,
-                          color: Colors.black87,
+                          color: isDark ? Colors.white : Colors.black87,
                         ),
                     textAlign: TextAlign.center,
                   ),
@@ -161,7 +167,7 @@ class _LoginScreenState extends State<LoginScreen> {
                   Text(
                     'Entre para continuar',
                     style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                          color: Colors.grey[600],
+                          color: isDark ? Colors.grey[400] : Colors.grey[600],
                         ),
                     textAlign: TextAlign.center,
                   ),
@@ -198,15 +204,40 @@ class _LoginScreenState extends State<LoginScreen> {
                     autocorrect: false,
                     enabled: !_isLoading,
                     validator: _validateEmail,
+                    style: TextStyle(
+                      color: isDark ? Colors.white : Colors.black87,
+                    ),
                     decoration: InputDecoration(
                       labelText: 'Email',
+                      labelStyle: TextStyle(
+                        color: isDark ? Colors.grey[400] : Colors.grey[700],
+                      ),
                       hintText: 'seu@email.com',
-                      prefixIcon: const Icon(Icons.email_outlined),
+                      hintStyle: TextStyle(
+                        color: isDark ? Colors.grey[600] : Colors.grey[400],
+                      ),
+                      prefixIcon: Icon(
+                        Icons.email_outlined,
+                        color: isDark ? Colors.grey[400] : Colors.grey[600],
+                      ),
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(12),
                       ),
+                      enabledBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                        borderSide: BorderSide(
+                          color: isDark ? Colors.grey[700]! : Colors.grey[300]!,
+                        ),
+                      ),
+                      focusedBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                        borderSide: BorderSide(
+                          color: AppThemes.lightPrimary,
+                          width: 2,
+                        ),
+                      ),
                       filled: true,
-                      fillColor: Colors.white,
+                      fillColor: isDark ? AppThemes.darkSurface : Colors.white,
                     ),
                   ),
                   const SizedBox(height: 16),
@@ -217,15 +248,28 @@ class _LoginScreenState extends State<LoginScreen> {
                     obscureText: _obscurePassword,
                     enabled: !_isLoading,
                     validator: _validatePassword,
+                    style: TextStyle(
+                      color: isDark ? Colors.white : Colors.black87,
+                    ),
                     decoration: InputDecoration(
                       labelText: 'Senha',
+                      labelStyle: TextStyle(
+                        color: isDark ? Colors.grey[400] : Colors.grey[700],
+                      ),
                       hintText: 'Sua senha',
-                      prefixIcon: const Icon(Icons.lock_outline),
+                      hintStyle: TextStyle(
+                        color: isDark ? Colors.grey[600] : Colors.grey[400],
+                      ),
+                      prefixIcon: Icon(
+                        Icons.lock_outline,
+                        color: isDark ? Colors.grey[400] : Colors.grey[600],
+                      ),
                       suffixIcon: IconButton(
                         icon: Icon(
                           _obscurePassword
                               ? Icons.visibility_outlined
                               : Icons.visibility_off_outlined,
+                          color: isDark ? Colors.grey[400] : Colors.grey[600],
                         ),
                         onPressed: () {
                           setState(() {
@@ -236,8 +280,21 @@ class _LoginScreenState extends State<LoginScreen> {
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(12),
                       ),
+                      enabledBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                        borderSide: BorderSide(
+                          color: isDark ? Colors.grey[700]! : Colors.grey[300]!,
+                        ),
+                      ),
+                      focusedBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                        borderSide: BorderSide(
+                          color: AppThemes.lightPrimary,
+                          width: 2,
+                        ),
+                      ),
                       filled: true,
-                      fillColor: Colors.white,
+                      fillColor: isDark ? AppThemes.darkSurface : Colors.white,
                     ),
                   ),
                   const SizedBox(height: 24),
@@ -248,9 +305,10 @@ class _LoginScreenState extends State<LoginScreen> {
                     child: ElevatedButton(
                       onPressed: _isLoading ? null : _handleLogin,
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.blue,
+                        backgroundColor: AppThemes.lightPrimary,
                         foregroundColor: Colors.white,
                         elevation: 0,
+                        disabledBackgroundColor: isDark ? Colors.grey[800] : Colors.grey[300],
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(12),
                         ),
@@ -282,12 +340,14 @@ class _LoginScreenState extends State<LoginScreen> {
                     children: [
                       Text(
                         'Não tem conta? ',
-                        style: TextStyle(color: Colors.grey[600]),
+                        style: TextStyle(
+                          color: isDark ? Colors.grey[400] : Colors.grey[600],
+                        ),
                       ),
                       TextButton(
                         onPressed: _isLoading ? null : _navigateToRegister,
                         style: TextButton.styleFrom(
-                          foregroundColor: Colors.blue,
+                          foregroundColor: AppThemes.lightPrimary,
                         ),
                         child: const Text(
                           'Cadastre-se',
