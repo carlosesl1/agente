@@ -149,15 +149,11 @@ class _ChatScreenState extends State<ChatScreen> {
       // Ouve mudanças nas mensagens
       _messagesSubscription = _lazyLoader!.messagesStream.listen((messages) {
         print('📨 Stream atualizado: ${messages.length} mensagens recebidas');
-        // Agenda a atualização para o próximo frame para evitar erros de layout
-        if (mounted) {
-          WidgetsBinding.instance.addPostFrameCallback((_) {
-            if (mounted) {
-              setState(() {
-                _messages.clear();
-                _messages.addAll(messages);
-              });
-            }
+        // Atualiza apenas se a quantidade mudou para evitar rebuilds desnecessários
+        if (mounted && _messages.length != messages.length) {
+          setState(() {
+            _messages.clear();
+            _messages.addAll(messages);
           });
         }
       });
@@ -1026,6 +1022,12 @@ class _ChatScreenState extends State<ChatScreen> {
                       ? AppThemes.darkInputBackground
                       : AppThemes.lightInputBackground,
                   borderRadius: BorderRadius.circular(24),
+                  border: Border.all(
+                    color: isDark
+                        ? Colors.white.withOpacity(0.1)
+                        : Colors.black.withOpacity(0.1),
+                    width: 1,
+                  ),
                 ),
                 child: Row(
                   children: [
