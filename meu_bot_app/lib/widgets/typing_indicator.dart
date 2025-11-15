@@ -4,21 +4,21 @@ import 'package:flutter/material.dart';
 ///
 /// Mostra três pontos que animam em sequência, similar ao indicador
 /// de digitação do WhatsApp e Claude
-class TypingIndicator extends StatefulWidget {
+class BotTypingIndicator extends StatefulWidget {
   final Color? dotColor;
   final double dotSize;
 
-  const TypingIndicator({
+  const BotTypingIndicator({
     super.key,
     this.dotColor,
     this.dotSize = 8.0,
   });
 
   @override
-  State<TypingIndicator> createState() => _TypingIndicatorState();
+  State<BotTypingIndicator> createState() => _BotTypingIndicatorState();
 }
 
-class _TypingIndicatorState extends State<TypingIndicator>
+class _BotTypingIndicatorState extends State<BotTypingIndicator>
     with SingleTickerProviderStateMixin {
   late AnimationController _controller;
   late Animation<double> _dot1;

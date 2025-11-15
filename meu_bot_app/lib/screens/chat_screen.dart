@@ -852,16 +852,16 @@ class _ChatScreenState extends State<ChatScreen> {
                                       : AppThemes.lightBotBubble,
                                   borderRadius: BorderRadius.circular(20),
                                 ),
-                                child: TypingIndicator(
+                                child: BotTypingIndicator(
                                   dotColor: isDark
                                       ? AppThemes.darkBotText
                                       : AppThemes.lightBotText,
                                 ),
                               );
                             }
-                            // Para outros tipos de mensagens customizadas, retorna null
-                            // (usa o builder padrão)
-                            return null;
+                            // Para outros tipos de mensagens customizadas, retorna widget vazio
+                            // (não renderiza nada)
+                            return const SizedBox.shrink();
                           },
                           // Input customizado estilo WhatsApp
                           customBottomWidget: _buildCustomInput(isDark),
