@@ -106,7 +106,7 @@ class _ChatScreenState extends State<ChatScreen> {
     );
   }
 
-  /// Carrega mensagens do banco de dados
+  /// Carrega mensagens do banco de dados de forma otimizada
   Future<void> _loadMessagesFromDatabase() async {
     setState(() {
       _isLoadingHistory = true;
@@ -118,30 +118,65 @@ class _ChatScreenState extends State<ChatScreen> {
       if (userId == null) {
         print('⚠️ Usuário não autenticado');
         _loadWelcomeMessage();
+        setState(() {
+          _isLoadingHistory = false;
+        });
         return;
       }
 
-      // Carregar últimas 50 mensagens
+      // Carregar mensagens de forma assíncrona
       final messages = await MessageService.loadMessages(userId, limit: 50);
 
-      setState(() {
-        _messages.clear();
-        _messages.addAll(messages);
-      });
-
       // Se não houver mensagens, mostra boas-vindas
-      if (_messages.isEmpty) {
+      if (messages.isEmpty) {
+        setState(() {
+          _isLoadingHistory = false;
+        });
         _loadWelcomeMessage();
+        return;
       }
+
+      // Carrega mensagens em lotes para não travar a UI
+      await _loadMessagesInBatches(messages);
 
       print('✓ ${_messages.length} mensagens carregadas do banco');
     } catch (e) {
       print('✗ Erro ao carregar mensagens: $e');
-      _loadWelcomeMessage(); // Fallback para mensagem de boas-vindas
-    } finally {
       setState(() {
         _isLoadingHistory = false;
       });
+      _loadWelcomeMessage(); // Fallback para mensagem de boas-vindas
+    }
+  }
+
+  /// Carrega mensagens em lotes para evitar lag
+  Future<void> _loadMessagesInBatches(List<types.Message> messages) async {
+    const batchSize = 10; // Processa 10 mensagens por vez
+
+    setState(() {
+      _messages.clear();
+    });
+
+    // Primeiro lote (primeiras 10 mensagens) - carrega imediatamente
+    final firstBatch = messages.take(batchSize).toList();
+    setState(() {
+      _messages.addAll(firstBatch);
+      _isLoadingHistory = false; // Remove loading após primeiro lote
+    });
+
+    // Resto das mensagens em lotes
+    for (int i = batchSize; i < messages.length; i += batchSize) {
+      // Aguarda um frame para não travar a UI
+      await Future.delayed(const Duration(milliseconds: 16)); // 1 frame a 60fps
+
+      final end = (i + batchSize < messages.length) ? i + batchSize : messages.length;
+      final batch = messages.sublist(i, end);
+
+      if (mounted) {
+        setState(() {
+          _messages.addAll(batch);
+        });
+      }
     }
   }
 
@@ -162,10 +197,8 @@ class _ChatScreenState extends State<ChatScreen> {
         useCache: false, // Force fetch from Supabase
       );
 
-      setState(() {
-        _messages.clear();
-        _messages.addAll(messages);
-      });
+      // Carrega em lotes para evitar lag
+      await _loadMessagesInBatches(messages);
 
       _showSuccess('Mensagens atualizadas!');
       print('✓ ${_messages.length} mensagens recarregadas');
