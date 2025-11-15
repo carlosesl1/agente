@@ -930,20 +930,25 @@ class _ChatScreenState extends State<ChatScreen> {
   /// Inicia a gravação de áudio
   Future<void> _startRecording() async {
     try {
-      final hasPermission = await AudioService.requestPermissions();
-      if (!hasPermission) {
-        _showError('Permissão de microfone necessária');
+      // startRecording() já solicita permissão internamente
+      final started = await AudioService.startRecording();
+
+      if (!started) {
+        _showError('Não foi possível iniciar a gravação');
         return;
       }
 
-      await AudioService.startRecording();
       setState(() {
         _isRecording = true;
       });
 
       _showInfo('Gravando áudio...');
     } catch (e) {
-      _showError('Erro ao iniciar gravação: $e');
+      if (e.toString().contains('Permissão')) {
+        _showError('Permissão de microfone necessária');
+      } else {
+        _showError('Erro ao iniciar gravação: $e');
+      }
     }
   }
 
