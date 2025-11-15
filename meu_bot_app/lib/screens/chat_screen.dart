@@ -105,6 +105,20 @@ class _ChatScreenState extends State<ChatScreen> with AutomaticKeepAliveClientMi
   Future<void> _loadAssistants() async {
     final assistantProvider = context.read<AssistantProvider>();
     await assistantProvider.loadAssistants();
+
+    // Se não houver assistentes, redireciona para criar o primeiro
+    if (assistantProvider.assistants.isEmpty) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) {
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (context) => const AssistantEditScreen(),
+            ),
+          );
+        }
+      });
+    }
   }
 
   /// Callback quando o assistente ativo muda
@@ -890,7 +904,7 @@ class _ChatScreenState extends State<ChatScreen> with AutomaticKeepAliveClientMi
           // Botão de configurações do assistente
           if (currentAssistant != null)
             IconButton(
-              icon: const Icon(Icons.tune),
+              icon: const Icon(Icons.settings),
               tooltip: 'Configurar Assistente',
               onPressed: () {
                 Navigator.push(
@@ -903,12 +917,6 @@ class _ChatScreenState extends State<ChatScreen> with AutomaticKeepAliveClientMi
                 );
               },
             ),
-          // Toggle de tema
-          IconButton(
-            icon: Icon(themeProvider.themeIcon),
-            tooltip: isDark ? 'Modo Claro' : 'Modo Escuro',
-            onPressed: () => themeProvider.toggleTheme(),
-          ),
         ],
       ),
       body: Column(
