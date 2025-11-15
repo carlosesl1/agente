@@ -327,20 +327,15 @@ class _ChatScreenState extends State<ChatScreen> {
     });
 
     try {
-      // Envia para o N8N (usando base64)
-      final response = await N8nService.sendImage(
+      // Envia para o N8N como arquivo JPEG (multipart/form-data)
+      // para evitar envio de base64 gigante
+      final response = await N8nService.sendImageMultipart(
         imageFile,
         _user.id,
       );
 
       // Remove mensagem de loading
       _removeTypingMessage();
-
-      // Se retornou null, significa que foi para fila offline
-      if (response == null) {
-        _showInfo('Sem conexão. Imagem será enviada quando conectar.');
-        return;
-      }
 
       // Adiciona resposta do bot
       _addBotResponse(response);
@@ -466,10 +461,11 @@ class _ChatScreenState extends State<ChatScreen> {
         backgroundColor: Colors.red,
         behavior: SnackBarBehavior.floating,
         margin: EdgeInsets.only(
-          top: MediaQuery.of(context).padding.top + 16,
+          top: MediaQuery.of(context).padding.top + 72, // AppBar height + padding
           left: 16,
           right: 16,
-          bottom: MediaQuery.of(context).size.height - 100,
+          bottom: MediaQuery.of(context).size.height -
+                 (MediaQuery.of(context).padding.top + 72 + 80), // Deixa espaço para a mensagem
         ),
         duration: const Duration(seconds: 3),
       ),
@@ -492,10 +488,11 @@ class _ChatScreenState extends State<ChatScreen> {
         backgroundColor: Colors.blue,
         behavior: SnackBarBehavior.floating,
         margin: EdgeInsets.only(
-          top: MediaQuery.of(context).padding.top + 16,
+          top: MediaQuery.of(context).padding.top + 72, // AppBar height + padding
           left: 16,
           right: 16,
-          bottom: MediaQuery.of(context).size.height - 100,
+          bottom: MediaQuery.of(context).size.height -
+                 (MediaQuery.of(context).padding.top + 72 + 80), // Deixa espaço para a mensagem
         ),
         duration: const Duration(seconds: 3),
       ),
@@ -518,10 +515,11 @@ class _ChatScreenState extends State<ChatScreen> {
         backgroundColor: Colors.green,
         behavior: SnackBarBehavior.floating,
         margin: EdgeInsets.only(
-          top: MediaQuery.of(context).padding.top + 16,
+          top: MediaQuery.of(context).padding.top + 72, // AppBar height + padding
           left: 16,
           right: 16,
-          bottom: MediaQuery.of(context).size.height - 100,
+          bottom: MediaQuery.of(context).size.height -
+                 (MediaQuery.of(context).padding.top + 72 + 80), // Deixa espaço para a mensagem
         ),
         duration: const Duration(seconds: 2),
       ),
@@ -923,6 +921,10 @@ class _ChatScreenState extends State<ChatScreen> {
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
       decoration: BoxDecoration(
         color: isDark ? AppThemes.darkSurface : Colors.white,
+        borderRadius: const BorderRadius.only(
+          topLeft: Radius.circular(16),
+          topRight: Radius.circular(16),
+        ),
         boxShadow: [
           BoxShadow(
             color: Colors.black.withOpacity(0.05),
