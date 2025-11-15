@@ -149,10 +149,17 @@ class _ChatScreenState extends State<ChatScreen> {
       // Ouve mudanças nas mensagens
       _messagesSubscription = _lazyLoader!.messagesStream.listen((messages) {
         print('📨 Stream atualizado: ${messages.length} mensagens recebidas');
-        setState(() {
-          _messages.clear();
-          _messages.addAll(messages);
-        });
+        // Agenda a atualização para o próximo frame para evitar erros de layout
+        if (mounted) {
+          WidgetsBinding.instance.addPostFrameCallback((_) {
+            if (mounted) {
+              setState(() {
+                _messages.clear();
+                _messages.addAll(messages);
+              });
+            }
+          });
+        }
       });
 
       // Carrega primeira página (10 mensagens)
