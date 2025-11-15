@@ -137,6 +137,8 @@ class _ChatScreenState extends State<ChatScreen> {
         return;
       }
 
+      print('🔧 Inicializando MessageLazyLoader com pageSize=10');
+
       // Inicializa o lazy loader com 10 mensagens por página
       _lazyLoader = MessageLazyLoader(
         userId: userId,
@@ -146,6 +148,7 @@ class _ChatScreenState extends State<ChatScreen> {
 
       // Ouve mudanças nas mensagens
       _messagesSubscription = _lazyLoader!.messagesStream.listen((messages) {
+        print('📨 Stream atualizado: ${messages.length} mensagens recebidas');
         setState(() {
           _messages.clear();
           _messages.addAll(messages);
@@ -153,6 +156,7 @@ class _ChatScreenState extends State<ChatScreen> {
       });
 
       // Carrega primeira página (10 mensagens)
+      print('📥 Iniciando carregamento da primeira página...');
       await _lazyLoader!.initialize(autoLoad: true);
 
       setState(() {

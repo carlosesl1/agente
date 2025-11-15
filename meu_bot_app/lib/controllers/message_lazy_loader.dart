@@ -5,13 +5,13 @@ import '../services/message_service.dart';
 
 /// Controller para lazy loading de mensagens
 ///
-/// Gerencia carregamento paginado de mensagens com detecção automática
-/// de scroll para carregar mais mensagens quando usuário rola para cima
+/// Gerencia carregamento paginado de mensagens com detecï¿½ï¿½o automï¿½tica
+/// de scroll para carregar mais mensagens quando usuï¿½rio rola para cima
 class MessageLazyLoader {
-  /// ID do usuário para carregar mensagens
+  /// ID do usuï¿½rio para carregar mensagens
   final String userId;
 
-  /// Quantidade de mensagens por página
+  /// Quantidade de mensagens por pï¿½gina
   final int pageSize;
 
   /// Threshold de scroll (em pixels) para iniciar carregamento
@@ -21,7 +21,7 @@ class MessageLazyLoader {
   /// Lista de mensagens carregadas
   final List<types.Message> _messages = [];
 
-  /// Stream controller para mudanças nas mensagens
+  /// Stream controller para mudanï¿½as nas mensagens
   final StreamController<List<types.Message>> _messagesController =
       StreamController<List<types.Message>>.broadcast();
 
@@ -46,13 +46,13 @@ class MessageLazyLoader {
   /// Getter se chegou ao fim
   bool get hasReachedEnd => _hasReachedEnd;
 
-  /// Offset atual para paginação
+  /// Offset atual para paginaï¿½ï¿½o
   int _currentOffset = 0;
 
-  /// ScrollController para detecção automática
+  /// ScrollController para detecï¿½ï¿½o automï¿½tica
   ScrollController? _scrollController;
 
-  /// Flag de inicialização
+  /// Flag de inicializaï¿½ï¿½o
   bool _initialized = false;
 
   MessageLazyLoader({
@@ -63,15 +63,15 @@ class MessageLazyLoader {
 
   /// Inicializa o lazy loader
   ///
-  /// Carrega primeira página de mensagens do cache/Supabase
-  /// [autoLoad] - Se deve carregar automaticamente a primeira página
+  /// Carrega primeira pï¿½gina de mensagens do cache/Supabase
+  /// [autoLoad] - Se deve carregar automaticamente a primeira pï¿½gina
   Future<void> initialize({bool autoLoad = true}) async {
     if (_initialized) {
-      print('   MessageLazyLoader já inicializado');
+      print('ï¿½  MessageLazyLoader jï¿½ inicializado');
       return;
     }
 
-    print('=€ Inicializando MessageLazyLoader (pageSize: $pageSize)...');
+    print('=ï¿½ Inicializando MessageLazyLoader (pageSize: $pageSize)...');
 
     if (autoLoad) {
       await loadInitialMessages();
@@ -81,7 +81,7 @@ class MessageLazyLoader {
     print(' MessageLazyLoader inicializado (${_messages.length} mensagens)');
   }
 
-  /// Carrega primeira página de mensagens
+  /// Carrega primeira pï¿½gina de mensagens
   Future<void> loadInitialMessages() async {
     if (_isLoading) return;
 
@@ -90,13 +90,13 @@ class MessageLazyLoader {
     _hasReachedEnd = false;
 
     try {
-      print('=å Carregando página inicial (${pageSize} mensagens)...');
+      print('ðŸ“¥ Carregando pÃ¡gina inicial ($pageSize mensagens)...');
 
       final newMessages = await MessageService.loadMessages(
         userId,
         limit: pageSize,
         offset: 0,
-        useCache: true, // Usa cache para primeira carga (rápido!)
+        useCache: false, // NÃƒO usa cache - forÃ§a carregar exatamente pageSize mensagens
       );
 
       _messages.clear();
@@ -105,7 +105,7 @@ class MessageLazyLoader {
       // Se retornou menos que pageSize, chegou ao fim
       if (newMessages.length < pageSize) {
         _hasReachedEnd = true;
-        print(' Fim da lista alcançado');
+        print(' Fim da lista alcanï¿½ado');
       }
 
       _currentOffset = newMessages.length;
@@ -120,15 +120,15 @@ class MessageLazyLoader {
     }
   }
 
-  /// Carrega próxima página de mensagens
+  /// Carrega prï¿½xima pï¿½gina de mensagens
   ///
-  /// Chamado automaticamente quando usuário rola para cima
+  /// Chamado automaticamente quando usuï¿½rio rola para cima
   /// ou pode ser chamado manualmente
   Future<void> loadMore() async {
-    // Não carrega se já está carregando ou se chegou ao fim
+    // Nï¿½o carrega se jï¿½ estï¿½ carregando ou se chegou ao fim
     if (_isLoading || _hasReachedEnd) {
       if (_hasReachedEnd) {
-        print('9  Todas as mensagens já foram carregadas');
+        print('9  Todas as mensagens jï¿½ foram carregadas');
       }
       return;
     }
@@ -136,22 +136,22 @@ class MessageLazyLoader {
     _isLoading = true;
 
     try {
-      print('=å Carregando mais mensagens (offset: $_currentOffset)...');
+      print('=ï¿½ Carregando mais mensagens (offset: $_currentOffset)...');
 
       final newMessages = await MessageService.loadMessages(
         userId,
         limit: pageSize,
         offset: _currentOffset,
-        useCache: false, // Páginas antigas não usam cache
+        useCache: false, // Pï¿½ginas antigas nï¿½o usam cache
       );
 
       if (newMessages.isEmpty) {
         _hasReachedEnd = true;
-        print(' Fim da lista alcançado (sem mais mensagens)');
+        print(' Fim da lista alcanï¿½ado (sem mais mensagens)');
         return;
       }
 
-      // Adiciona apenas mensagens que não existem (evita duplicatas)
+      // Adiciona apenas mensagens que nï¿½o existem (evita duplicatas)
       int addedCount = 0;
       for (final message in newMessages) {
         if (!_messages.any((m) => m.id == message.id)) {
@@ -163,7 +163,7 @@ class MessageLazyLoader {
       // Se retornou menos que pageSize, chegou ao fim
       if (newMessages.length < pageSize) {
         _hasReachedEnd = true;
-        print(' Fim da lista alcançado');
+        print(' Fim da lista alcanï¿½ado');
       }
 
       _currentOffset += newMessages.length;
@@ -178,18 +178,18 @@ class MessageLazyLoader {
     }
   }
 
-  /// Adiciona uma nova mensagem no início da lista
+  /// Adiciona uma nova mensagem no inï¿½cio da lista
   ///
-  /// Usado quando usuário envia uma mensagem ou recebe do bot
+  /// Usado quando usuï¿½rio envia uma mensagem ou recebe do bot
   void addMessage(types.Message message) {
-    // Verifica se mensagem já existe
+    // Verifica se mensagem jï¿½ existe
     final existingIndex = _messages.indexWhere((m) => m.id == message.id);
 
     if (existingIndex != -1) {
       // Atualiza mensagem existente
       _messages[existingIndex] = message;
     } else {
-      // Adiciona nova mensagem no início
+      // Adiciona nova mensagem no inï¿½cio
       _messages.insert(0, message);
       _currentOffset++; // Incrementa offset
     }
@@ -221,9 +221,9 @@ class MessageLazyLoader {
     await loadInitialMessages();
   }
 
-  /// Anexa ScrollController para detecção automática de scroll
+  /// Anexa ScrollController para detecï¿½ï¿½o automï¿½tica de scroll
   ///
-  /// Quando usuário rolar até o topo, carrega mais mensagens automaticamente
+  /// Quando usuï¿½rio rolar atï¿½ o topo, carrega mais mensagens automaticamente
   ///
   /// Exemplo de uso:
   /// ```dart
@@ -239,29 +239,29 @@ class MessageLazyLoader {
   void attachScrollController(ScrollController controller) {
     _scrollController = controller;
     _scrollController!.addListener(_onScroll);
-    print('=Ü ScrollController anexado (threshold: ${scrollThreshold}px)');
+    print('=ï¿½ ScrollController anexado (threshold: ${scrollThreshold}px)');
   }
 
   /// Desanexa ScrollController
   void detachScrollController() {
     _scrollController?.removeListener(_onScroll);
     _scrollController = null;
-    print('=Ü ScrollController desanexado');
+    print('=ï¿½ ScrollController desanexado');
   }
 
-  /// Listener de scroll para detecção automática
+  /// Listener de scroll para detecï¿½ï¿½o automï¿½tica
   void _onScroll() {
     if (_scrollController == null || !_scrollController!.hasClients) return;
 
     final position = _scrollController!.position;
 
-    // Verifica se está próximo do topo (scroll up)
+    // Verifica se estï¿½ prï¿½ximo do topo (scroll up)
     // maxScrollExtent - pixels < threshold
     // Nota: No chat, mensagens antigas ficam no "topo" (scroll up)
     final distanceFromEnd = position.maxScrollExtent - position.pixels;
 
     if (distanceFromEnd < scrollThreshold && !_isLoading && !_hasReachedEnd) {
-      print('=Ü Threshold atingido, carregando mais mensagens...');
+      print('=ï¿½ Threshold atingido, carregando mais mensagens...');
       loadMore();
     }
   }
@@ -279,13 +279,13 @@ class MessageLazyLoader {
   void dispose() {
     detachScrollController();
     _messagesController.close();
-    print('=Ñ MessageLazyLoader finalizado');
+    print('=ï¿½ MessageLazyLoader finalizado');
   }
 }
 
 /// Widget helper para exibir indicador de carregamento
 ///
-/// Exibe um CircularProgressIndicator quando está carregando
+/// Exibe um CircularProgressIndicator quando estï¿½ carregando
 class LazyLoadingIndicator extends StatelessWidget {
   final MessageLazyLoader loader;
   final Widget? child;
@@ -340,7 +340,7 @@ class EndOfListIndicator extends StatelessWidget {
       padding: const EdgeInsets.all(16.0),
       child: Center(
         child: Text(
-          '    Início da conversa    ',
+          '    Inï¿½cio da conversa    ',
           style: Theme.of(context).textTheme.bodySmall?.copyWith(
                 color: Colors.grey,
               ),
