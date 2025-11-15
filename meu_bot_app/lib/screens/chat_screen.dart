@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_chat_ui/flutter_chat_ui.dart';
@@ -11,6 +12,7 @@ import '../services/media_service.dart';
 import '../services/audio_service.dart';
 import '../services/connectivity_service.dart';
 import '../services/message_service.dart';
+import '../controllers/message_lazy_loader.dart';
 import '../widgets/skeleton_loading.dart';
 import '../widgets/typing_indicator.dart';
 import '../theme/app_themes.dart';
@@ -50,6 +52,9 @@ class _ChatScreenState extends State<ChatScreen> {
   // Carregando histórico do banco
   bool _isLoadingHistory = true;
 
+  // Carregando mais mensagens (lazy loading)
+  bool _isLoadingMore = false;
+
   // Controller para o campo de texto
   final TextEditingController _textController = TextEditingController();
 
@@ -61,6 +66,12 @@ class _ChatScreenState extends State<ChatScreen> {
 
   // ID da mensagem de loading temporária
   String? _typingMessageId;
+
+  // Lazy loader para paginação de mensagens
+  MessageLazyLoader? _lazyLoader;
+
+  // Stream subscription para mensagens
+  StreamSubscription<List<types.Message>>? _messagesSubscription;
 
   @override
   void initState() {
@@ -80,6 +91,8 @@ class _ChatScreenState extends State<ChatScreen> {
   @override
   void dispose() {
     _textController.dispose();
+    _messagesSubscription?.cancel();
+    _lazyLoader?.dispose();
     super.dispose();
   }
 
@@ -124,59 +137,40 @@ class _ChatScreenState extends State<ChatScreen> {
         return;
       }
 
-      // Carregar mensagens de forma assíncrona
-      final messages = await MessageService.loadMessages(userId, limit: 50);
+      // Inicializa o lazy loader com 10 mensagens por página
+      _lazyLoader = MessageLazyLoader(
+        userId: userId,
+        pageSize: 10, // Carrega apenas 10 mensagens inicialmente
+        scrollThreshold: 300.0,
+      );
+
+      // Ouve mudanças nas mensagens
+      _messagesSubscription = _lazyLoader!.messagesStream.listen((messages) {
+        setState(() {
+          _messages.clear();
+          _messages.addAll(messages);
+        });
+      });
+
+      // Carrega primeira página (10 mensagens)
+      await _lazyLoader!.initialize(autoLoad: true);
+
+      setState(() {
+        _isLoadingHistory = false;
+      });
 
       // Se não houver mensagens, mostra boas-vindas
-      if (messages.isEmpty) {
-        setState(() {
-          _isLoadingHistory = false;
-        });
+      if (_messages.isEmpty) {
         _loadWelcomeMessage();
-        return;
+      } else {
+        print('✓ ${_messages.length} mensagens carregadas do banco');
       }
-
-      // Carrega mensagens em lotes para não travar a UI
-      await _loadMessagesInBatches(messages);
-
-      print('✓ ${_messages.length} mensagens carregadas do banco');
     } catch (e) {
       print('✗ Erro ao carregar mensagens: $e');
       setState(() {
         _isLoadingHistory = false;
       });
       _loadWelcomeMessage(); // Fallback para mensagem de boas-vindas
-    }
-  }
-
-  /// Carrega mensagens em lotes para evitar lag
-  Future<void> _loadMessagesInBatches(List<types.Message> messages) async {
-    const batchSize = 10; // Processa 10 mensagens por vez
-
-    setState(() {
-      _messages.clear();
-    });
-
-    // Primeiro lote (primeiras 10 mensagens) - carrega imediatamente
-    final firstBatch = messages.take(batchSize).toList();
-    setState(() {
-      _messages.addAll(firstBatch);
-      _isLoadingHistory = false; // Remove loading após primeiro lote
-    });
-
-    // Resto das mensagens em lotes
-    for (int i = batchSize; i < messages.length; i += batchSize) {
-      // Aguarda um frame para não travar a UI
-      await Future.delayed(const Duration(milliseconds: 16)); // 1 frame a 60fps
-
-      final end = (i + batchSize < messages.length) ? i + batchSize : messages.length;
-      final batch = messages.sublist(i, end);
-
-      if (mounted) {
-        setState(() {
-          _messages.addAll(batch);
-        });
-      }
     }
   }
 
@@ -190,21 +184,31 @@ class _ChatScreenState extends State<ChatScreen> {
         return;
       }
 
-      // Força reload do Supabase (sem usar cache)
-      final messages = await MessageService.loadMessages(
-        userId,
-        limit: 50,
-        useCache: false, // Force fetch from Supabase
-      );
-
-      // Carrega em lotes para evitar lag
-      await _loadMessagesInBatches(messages);
-
-      _showSuccess('Mensagens atualizadas!');
-      print('✓ ${_messages.length} mensagens recarregadas');
+      // Recarrega mensagens usando o lazy loader
+      if (_lazyLoader != null) {
+        await _lazyLoader!.refresh();
+        _showSuccess('Mensagens atualizadas!');
+        print('✓ ${_messages.length} mensagens recarregadas');
+      }
     } catch (e) {
       print('✗ Erro ao recarregar mensagens: $e');
       _showError('Erro ao atualizar mensagens');
+    }
+  }
+
+  /// Carrega mais mensagens quando o usuário scrolla para o topo
+  Future<void> _handleLoadMore() async {
+    if (_lazyLoader != null && !_lazyLoader!.isLoading && !_lazyLoader!.hasReachedEnd) {
+      setState(() {
+        _isLoadingMore = true;
+      });
+
+      print('📥 Carregando mais mensagens...');
+      await _lazyLoader!.loadMore();
+
+      setState(() {
+        _isLoadingMore = false;
+      });
     }
   }
 
@@ -260,9 +264,15 @@ class _ChatScreenState extends State<ChatScreen> {
 
   /// Adiciona uma mensagem à lista e salva no banco
   void _addMessage(types.Message message) {
-    setState(() {
-      _messages.insert(0, message);
-    });
+    // Adiciona ao lazy loader se disponível
+    if (_lazyLoader != null) {
+      _lazyLoader!.addMessage(message);
+    } else {
+      // Fallback: adiciona diretamente
+      setState(() {
+        _messages.insert(0, message);
+      });
+    }
 
     // Salvar no banco de dados
     final userId = SupabaseService.getCurrentUser()?.id;
@@ -801,6 +811,35 @@ class _ChatScreenState extends State<ChatScreen> {
       ),
       body: Column(
         children: [
+          // Indicador de loading ao carregar mais mensagens
+          if (_isLoadingMore && !_isLoadingHistory)
+            Container(
+              padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
+              color: isDark ? Colors.black26 : Colors.white70,
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  SizedBox(
+                    width: 16,
+                    height: 16,
+                    child: CircularProgressIndicator(
+                      strokeWidth: 2,
+                      valueColor: AlwaysStoppedAnimation<Color>(
+                        isDark ? Colors.white70 : Colors.black54,
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Text(
+                    'Carregando mensagens antigas...',
+                    style: TextStyle(
+                      fontSize: 12,
+                      color: isDark ? Colors.white70 : Colors.black54,
+                    ),
+                  ),
+                ],
+              ),
+            ),
           // Chat principal com Pull to Refresh
           Expanded(
             child: _isLoadingHistory
@@ -813,6 +852,9 @@ class _ChatScreenState extends State<ChatScreen> {
                           messages: _messages,
                           onSendPressed: _handleSendPressed,
                           user: _user,
+                          // Carregar mais mensagens quando chegar perto do fim
+                          onEndReached: _handleLoadMore,
+                          onEndReachedThreshold: 0.7, // Carrega quando estiver a 70% do fim
                           // Otimizações de performance
                           scrollPhysics: const ClampingScrollPhysics(),
                           // Tema personalizado baseado no tema atual
