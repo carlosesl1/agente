@@ -124,6 +124,7 @@ class N8nService {
   ///
   /// [message] - Texto da mensagem
   /// [userId] - ID do usuário que está enviando
+  /// [webhookUrl] - URL do webhook (opcional, usa padrão se não fornecido)
   ///
   /// Retorna a resposta do bot ou adiciona à fila offline se sem conexão
   ///
@@ -140,7 +141,11 @@ class N8nService {
   ///   print('Erro: $e');
   /// }
   /// ```
-  static Future<N8nResponse?> sendMessage(String message, String userId) async {
+  static Future<N8nResponse?> sendMessage(
+    String message,
+    String userId, {
+    String? webhookUrl,
+  }) async {
     // Verifica conectividade
     if (!_connectivity.isOnline) {
       print('📵 Sem conexão. Adicionando mensagem à fila offline...');
@@ -171,9 +176,9 @@ class N8nService {
 
           print('📤 Enviando mensagem para N8N: $message');
 
-          final webhookUrl = await _getWebhookUrl();
+          final url = webhookUrl ?? await _getWebhookUrl();
           final response = await _dio.post(
-            webhookUrl,
+            url,
             data: payload,
           );
 
@@ -309,10 +314,12 @@ class N8nService {
   ///
   /// Use este método se preferir enviar a imagem como arquivo
   /// em vez de base64
+  /// [webhookUrl] - URL do webhook (opcional, usa padrão se não fornecido)
   static Future<N8nResponse> sendImageMultipart(
     File imageFile,
-    String userId,
-  ) async {
+    String userId, {
+    String? webhookUrl,
+  }) async {
     try {
       final formData = FormData.fromMap({
         'userId': userId,
@@ -327,9 +334,9 @@ class N8nService {
 
       print('📤 Enviando imagem (multipart) para N8N');
 
-      final webhookUrl = await _getWebhookUrl();
+      final url = webhookUrl ?? await _getWebhookUrl();
       final response = await _dio.post(
-        webhookUrl,
+        url,
         data: formData,
       );
 
@@ -443,10 +450,12 @@ class N8nService {
   ///
   /// Use este método se preferir enviar o áudio como arquivo
   /// em vez de base64
+  /// [webhookUrl] - URL do webhook (opcional, usa padrão se não fornecido)
   static Future<N8nResponse> sendAudioMultipart(
     File audioFile,
-    String userId,
-  ) async {
+    String userId, {
+    String? webhookUrl,
+  }) async {
     try {
       final formData = FormData.fromMap({
         'userId': userId,
@@ -461,9 +470,9 @@ class N8nService {
 
       print('📤 Enviando áudio (multipart) para N8N');
 
-      final webhookUrl = await _getWebhookUrl();
+      final url = webhookUrl ?? await _getWebhookUrl();
       final response = await _dio.post(
-        webhookUrl,
+        url,
         data: formData,
       );
 

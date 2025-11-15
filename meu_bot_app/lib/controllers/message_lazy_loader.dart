@@ -11,6 +11,9 @@ class MessageLazyLoader {
   /// ID do usu�rio para carregar mensagens
   final String userId;
 
+  /// ID do assistente para filtrar mensagens (opcional)
+  final String? assistantId;
+
   /// Quantidade de mensagens por p�gina
   final int pageSize;
 
@@ -57,6 +60,7 @@ class MessageLazyLoader {
 
   MessageLazyLoader({
     required this.userId,
+    this.assistantId,
     this.pageSize = 20,
     this.scrollThreshold = 300.0,
   });
@@ -94,6 +98,7 @@ class MessageLazyLoader {
 
       final newMessages = await MessageService.loadMessages(
         userId,
+        assistantId: assistantId,
         limit: pageSize,
         offset: 0,
         useCache: false, // NÃO usa cache - força carregar exatamente pageSize mensagens

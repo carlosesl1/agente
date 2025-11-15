@@ -26,13 +26,18 @@ class MessageService {
   ///
   /// [message] - Mensagem a ser salva
   /// [userId] - ID do usuário (do Supabase auth)
-  static Future<void> saveMessage(types.Message message, String userId) async {
+  /// [assistantId] - ID do assistente (opcional)
+  static Future<void> saveMessage(
+    types.Message message,
+    String userId, {
+    String? assistantId,
+  }) async {
     // Salva no cache imediatamente (UX rápida)
     await _cache.addMessage(message);
 
     // Salva no Supabase em background
     try {
-      final data = _messageToJson(message, userId);
+      final data = _messageToJson(message, userId, assistantId: assistantId);
 
       await SupabaseService.client.from('messages').insert(data);
 
@@ -47,6 +52,7 @@ class MessageService {
   /// Carrega mensagens do cache ou Supabase
   ///
   /// [userId] - ID do usuário
+  /// [assistantId] - ID do assistente para filtrar (opcional)
   /// [limit] - Quantidade de mensagens para carregar (padrão: 50)
   /// [offset] - Offset para paginação (padrão: 0)
   /// [useCache] - Se deve usar cache (padrão: true)
@@ -59,6 +65,7 @@ class MessageService {
   /// 3. Se useCache=false: busca direto do Supabase
   static Future<List<types.Message>> loadMessages(
     String userId, {
+    String? assistantId,
     int limit = 50,
     int offset = 0,
     bool useCache = true,
@@ -79,10 +86,18 @@ class MessageService {
     try {
       print('🔄 Carregando mensagens do Supabase...');
 
-      final response = await SupabaseService.client
+      var query = SupabaseService.client
           .from('messages')
           .select()
-          .eq('user_id', userId)
+          .eq('user_id', userId);
+
+      // Filtra por assistente se fornecido
+      if (assistantId != null) {
+        query = query.eq('assistant_id', assistantId);
+        print('📌 Filtrando por assistente: $assistantId');
+      }
+
+      final response = await query
           .order('created_at', ascending: false)
           .range(offset, offset + limit - 1);
 
@@ -183,13 +198,15 @@ class MessageService {
   /// Converte Message para JSON do Supabase
   static Map<String, dynamic> _messageToJson(
     types.Message message,
-    String userId,
-  ) {
+    String userId, {
+    String? assistantId,
+  }) {
     final baseData = {
       'user_id': userId,
       'message_id': message.id,
       'author_type': message.author.id == userId ? 'user' : 'bot',
       'created_at': message.createdAt ?? DateTime.now().millisecondsSinceEpoch,
+      if (assistantId != null) 'assistant_id': assistantId,
     };
 
     // Adiciona campos específicos por tipo de mensagem

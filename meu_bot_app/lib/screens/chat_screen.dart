@@ -93,6 +93,12 @@ class _ChatScreenState extends State<ChatScreen> with AutomaticKeepAliveClientMi
         _currentText = _textController.text;
       });
     });
+
+    // Listener para mudanças de assistente
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final assistantProvider = context.read<AssistantProvider>();
+      assistantProvider.addListener(_onAssistantChanged);
+    });
   }
 
   /// Carrega os assistentes do usuário
@@ -101,11 +107,26 @@ class _ChatScreenState extends State<ChatScreen> with AutomaticKeepAliveClientMi
     await assistantProvider.loadAssistants();
   }
 
+  /// Callback quando o assistente ativo muda
+  void _onAssistantChanged() {
+    print('🔄 Assistente mudou, recarregando mensagens...');
+    _loadMessagesFromDatabase();
+  }
+
   @override
   void dispose() {
     _textController.dispose();
     _messagesSubscription?.cancel();
     _lazyLoader?.dispose();
+
+    // Remove listener de assistente
+    try {
+      final assistantProvider = context.read<AssistantProvider>();
+      assistantProvider.removeListener(_onAssistantChanged);
+    } catch (e) {
+      // Ignora erro se o provider já foi descartado
+    }
+
     super.dispose();
   }
 
@@ -152,9 +173,14 @@ class _ChatScreenState extends State<ChatScreen> with AutomaticKeepAliveClientMi
 
       print('🔧 Inicializando MessageLazyLoader com pageSize=10');
 
+      // Obtém o assistente atual
+      final assistantProvider = context.read<AssistantProvider>();
+      final currentAssistant = assistantProvider.currentAssistant;
+
       // Inicializa o lazy loader com 10 mensagens por página
       _lazyLoader = MessageLazyLoader(
         userId: userId,
+        assistantId: currentAssistant?.id, // Filtra por assistente
         pageSize: 10, // Carrega apenas 10 mensagens inicialmente
         scrollThreshold: 300.0,
       );
@@ -248,7 +274,14 @@ class _ChatScreenState extends State<ChatScreen> with AutomaticKeepAliveClientMi
     // Salvar mensagem de boas-vindas no banco
     final userId = SupabaseService.getCurrentUser()?.id;
     if (userId != null) {
-      MessageService.saveMessage(welcomeMessage, userId);
+      final assistantProvider = context.read<AssistantProvider>();
+      final currentAssistant = assistantProvider.currentAssistant;
+
+      MessageService.saveMessage(
+        welcomeMessage,
+        userId,
+        assistantId: currentAssistant?.id,
+      );
     }
   }
 
@@ -294,10 +327,17 @@ class _ChatScreenState extends State<ChatScreen> with AutomaticKeepAliveClientMi
       });
     }
 
-    // Salvar no banco de dados
+    // Salvar no banco de dados com assistentId
     final userId = SupabaseService.getCurrentUser()?.id;
     if (userId != null) {
-      MessageService.saveMessage(message, userId);
+      final assistantProvider = context.read<AssistantProvider>();
+      final currentAssistant = assistantProvider.currentAssistant;
+
+      MessageService.saveMessage(
+        message,
+        userId,
+        assistantId: currentAssistant?.id,
+      );
     }
   }
 
@@ -344,10 +384,15 @@ class _ChatScreenState extends State<ChatScreen> with AutomaticKeepAliveClientMi
     });
 
     try {
-      // Envia para o N8N
+      // Obtém o webhook do assistente atual
+      final assistantProvider = context.read<AssistantProvider>();
+      final currentAssistant = assistantProvider.currentAssistant;
+
+      // Envia para o N8N usando webhook do assistente
       final response = await N8nService.sendMessage(
         text,
         _user.id,
+        webhookUrl: currentAssistant?.webhookUrl,
       );
 
       // Remove mensagem de loading
@@ -390,11 +435,16 @@ class _ChatScreenState extends State<ChatScreen> with AutomaticKeepAliveClientMi
     });
 
     try {
+      // Obtém o webhook do assistente atual
+      final assistantProvider = context.read<AssistantProvider>();
+      final currentAssistant = assistantProvider.currentAssistant;
+
       // Envia para o N8N como arquivo JPEG (multipart/form-data)
       // para evitar envio de base64 gigante
       final response = await N8nService.sendImageMultipart(
         imageFile,
         _user.id,
+        webhookUrl: currentAssistant?.webhookUrl,
       );
 
       // Remove mensagem de loading
@@ -432,11 +482,16 @@ class _ChatScreenState extends State<ChatScreen> with AutomaticKeepAliveClientMi
     });
 
     try {
+      // Obtém o webhook do assistente atual
+      final assistantProvider = context.read<AssistantProvider>();
+      final currentAssistant = assistantProvider.currentAssistant;
+
       // Envia para o N8N como arquivo MP4 (multipart/form-data)
       // para permitir transcrição no N8N
       final response = await N8nService.sendAudioMultipart(
         audioFile,
         _user.id,
+        webhookUrl: currentAssistant?.webhookUrl,
       );
 
       // Remove mensagem de loading
@@ -904,16 +959,18 @@ class _ChatScreenState extends State<ChatScreen> with AutomaticKeepAliveClientMi
                             onEndReached: _handleLoadMore,
                             onEndReachedThreshold: 0.7, // Carrega quando estiver a 70% do fim
                             // Scroll suave e natural (usa o padrão da plataforma)
-                            // Tema personalizado baseado no tema atual
+                            // Tema personalizado baseado no assistente atual
                           theme: DefaultChatTheme(
-                            // Cor das mensagens do usuário
-                            primaryColor: isDark
-                                ? AppThemes.darkUserBubble
-                                : AppThemes.lightUserBubble,
-                            // Cor das mensagens do bot
-                            secondaryColor: isDark
-                                ? AppThemes.darkBotBubble
-                                : AppThemes.lightBotBubble,
+                            // Cor das mensagens do usuário - usa cor do assistente
+                            primaryColor: currentAssistant?.primaryColor ??
+                                (isDark
+                                    ? AppThemes.darkUserBubble
+                                    : AppThemes.lightUserBubble),
+                            // Cor das mensagens do bot - usa cor secundária do assistente
+                            secondaryColor: currentAssistant?.secondaryColor ??
+                                (isDark
+                                    ? AppThemes.darkBotBubble
+                                    : AppThemes.lightBotBubble),
                             // Cor de fundo
                             backgroundColor: isDark
                                 ? AppThemes.darkBackground
@@ -1130,10 +1187,14 @@ class _ChatScreenState extends State<ChatScreen> with AutomaticKeepAliveClientMi
 
   /// Constrói o botão de ação (microfone ou enviar)
   Widget _buildActionButton(bool isDark) {
+    final assistantProvider = Provider.of<AssistantProvider>(context);
+    final currentAssistant = assistantProvider.currentAssistant;
+    final buttonColor = currentAssistant?.primaryColor ?? AppThemes.lightPrimary;
+
     // Se há texto, mostra botão de enviar
     if (_currentText.trim().isNotEmpty) {
       return Material(
-        color: AppThemes.lightPrimary,
+        color: buttonColor,
         borderRadius: BorderRadius.circular(24),
         child: InkWell(
           borderRadius: BorderRadius.circular(24),
@@ -1161,7 +1222,7 @@ class _ChatScreenState extends State<ChatScreen> with AutomaticKeepAliveClientMi
 
     // Se não há texto, mostra botão de microfone
     return Material(
-      color: _isRecording ? Colors.red : AppThemes.lightPrimary,
+      color: _isRecording ? Colors.red : buttonColor,
       borderRadius: BorderRadius.circular(24),
       child: InkWell(
         borderRadius: BorderRadius.circular(24),
