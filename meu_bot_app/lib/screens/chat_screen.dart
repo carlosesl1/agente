@@ -13,8 +13,11 @@ import '../services/audio_service.dart';
 import '../services/connectivity_service.dart';
 import '../services/message_service.dart';
 import '../controllers/message_lazy_loader.dart';
+import '../providers/assistant_provider.dart';
 import '../widgets/skeleton_loading.dart';
 import '../widgets/typing_indicator.dart';
+import '../widgets/assistants_drawer.dart';
+import '../screens/assistant_edit_screen.dart';
 import '../theme/app_themes.dart';
 import '../theme/theme_provider.dart';
 import 'login_screen.dart';
@@ -81,6 +84,7 @@ class _ChatScreenState extends State<ChatScreen> with AutomaticKeepAliveClientMi
     super.initState();
     _initializeUsers();
     _configureTimeago();
+    _loadAssistants();
     _loadMessagesFromDatabase();
 
     // Listener para o campo de texto
@@ -89,6 +93,12 @@ class _ChatScreenState extends State<ChatScreen> with AutomaticKeepAliveClientMi
         _currentText = _textController.text;
       });
     });
+  }
+
+  /// Carrega os assistentes do usuário
+  Future<void> _loadAssistants() async {
+    final assistantProvider = context.read<AssistantProvider>();
+    await assistantProvider.loadAssistants();
   }
 
   @override
@@ -759,25 +769,53 @@ class _ChatScreenState extends State<ChatScreen> with AutomaticKeepAliveClientMi
     super.build(context); // AutomaticKeepAliveClientMixin
     final themeProvider = Provider.of<ThemeProvider>(context);
     final isDark = themeProvider.isDarkMode;
+    final assistantProvider = Provider.of<AssistantProvider>(context);
+    final currentAssistant = assistantProvider.currentAssistant;
 
     return Scaffold(
       resizeToAvoidBottomInset: true,
+      drawer: const AssistantsDrawer(),
       appBar: AppBar(
-        title: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Container(
-              padding: const EdgeInsets.all(6),
-              decoration: BoxDecoration(
-                color: AppThemes.lightPrimary.withOpacity(0.1),
-                borderRadius: BorderRadius.circular(8),
-              ),
-              child: const Icon(Icons.smart_toy, size: 20),
-            ),
-            const SizedBox(width: 8),
-            const Text('Meu Bot'),
-          ],
+        leading: Builder(
+          builder: (context) => IconButton(
+            icon: const Icon(Icons.menu),
+            onPressed: () {
+              Scaffold.of(context).openDrawer();
+            },
+            tooltip: 'Menu',
+          ),
         ),
+        title: currentAssistant != null
+            ? Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  CircleAvatar(
+                    radius: 18,
+                    backgroundColor: currentAssistant.primaryColor,
+                    backgroundImage: currentAssistant.avatarUrl != null
+                        ? NetworkImage(currentAssistant.effectiveAvatarUrl)
+                        : null,
+                    child: currentAssistant.avatarUrl == null
+                        ? Text(
+                            currentAssistant.name[0].toUpperCase(),
+                            style: const TextStyle(
+                              color: Colors.white,
+                              fontSize: 16,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          )
+                        : null,
+                  ),
+                  const SizedBox(width: 12),
+                  Flexible(
+                    child: Text(
+                      currentAssistant.name,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ),
+                ],
+              )
+            : const Text('Meu Bot'),
         actions: [
           // Indicador de loading
           if (_isLoading)
@@ -794,30 +832,27 @@ class _ChatScreenState extends State<ChatScreen> with AutomaticKeepAliveClientMi
                 ),
               ),
             ),
+          // Botão de configurações do assistente
+          if (currentAssistant != null)
+            IconButton(
+              icon: const Icon(Icons.tune),
+              tooltip: 'Configurar Assistente',
+              onPressed: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => AssistantEditScreen(
+                      assistant: currentAssistant,
+                    ),
+                  ),
+                );
+              },
+            ),
           // Toggle de tema
           IconButton(
             icon: Icon(themeProvider.themeIcon),
             tooltip: isDark ? 'Modo Claro' : 'Modo Escuro',
             onPressed: () => themeProvider.toggleTheme(),
-          ),
-          // Botão de configurações
-          IconButton(
-            icon: const Icon(Icons.settings),
-            tooltip: 'Configurações',
-            onPressed: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (context) => const SettingsScreen(),
-                ),
-              );
-            },
-          ),
-          // Botão de logout
-          IconButton(
-            icon: const Icon(Icons.logout),
-            tooltip: 'Sair',
-            onPressed: _handleLogout,
           ),
         ],
       ),

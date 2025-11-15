@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 import 'services/supabase_service.dart';
 import 'services/notification_service.dart';
 import 'services/preferences_service.dart';
+import 'providers/assistant_provider.dart';
 import 'theme/app_themes.dart';
 import 'theme/theme_provider.dart';
 import 'screens/splash_screen.dart';
@@ -92,8 +93,14 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return ChangeNotifierProvider.value(
-      value: themeProvider,
+    return MultiProvider(
+      providers: [
+        // Theme Provider
+        ChangeNotifierProvider.value(value: themeProvider),
+
+        // Assistant Provider
+        ChangeNotifierProvider(create: (_) => AssistantProvider()),
+      ],
       child: Consumer<ThemeProvider>(
         builder: (context, theme, _) {
           return MaterialApp(
