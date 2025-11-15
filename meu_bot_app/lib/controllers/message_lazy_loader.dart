@@ -199,9 +199,10 @@ class MessageLazyLoader {
 
   /// Remove uma mensagem da lista
   void removeMessage(String messageId) {
-    final removed = _messages.removeWhere((m) => m.id == messageId);
+    final initialLength = _messages.length;
+    _messages.removeWhere((m) => m.id == messageId);
 
-    if (removed > 0) {
+    if (_messages.length < initialLength) {
       _currentOffset--; // Decrementa offset
       _messagesController.add(_messages);
     }
