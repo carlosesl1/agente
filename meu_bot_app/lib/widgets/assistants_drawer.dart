@@ -255,7 +255,7 @@ class AssistantsDrawer extends StatelessWidget {
                 // Ícone de selecionado
                 if (isSelected)
                   Icon(
-                    Icons.checkmark_circle_outlined,
+                    Icons.check_circle_outline,
                     color: assistant.primaryColor,
                     size: 20,
                   )
