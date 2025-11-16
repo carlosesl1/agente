@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'dart:async';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:flutter_animate/flutter_animate.dart';
 import '../services/supabase_service.dart';
 import 'login_screen.dart';
 import 'chat_screen.dart';
@@ -81,65 +82,122 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.blue,
-      body: FadeTransition(
-        opacity: _fadeAnimation,
-        child: Center(
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              // Ícone do bot
-              Container(
-                padding: const EdgeInsets.all(24),
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  shape: BoxShape.circle,
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.black.withOpacity(0.2),
-                      blurRadius: 20,
-                      spreadRadius: 5,
-                    ),
-                  ],
-                ),
-                child: const Icon(
-                  Icons.smart_toy,
-                  size: 80,
-                  color: Colors.blue,
-                ),
-              ),
-              const SizedBox(height: 32),
-              // Nome do app
-              const Text(
-                'Meu Bot',
-                style: TextStyle(
-                  fontSize: 32,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.white,
-                  letterSpacing: 1.5,
-                ),
-              ),
-              const SizedBox(height: 8),
-              // Subtítulo
-              Text(
-                'Seu assistente virtual inteligente',
-                style: TextStyle(
-                  fontSize: 16,
-                  color: Colors.white.withOpacity(0.9),
-                  fontWeight: FontWeight.w300,
-                ),
-              ),
-              const SizedBox(height: 48),
-              // Indicador de loading
-              SizedBox(
-                width: 40,
-                height: 40,
-                child: CircularProgressIndicator(
-                  strokeWidth: 3,
-                  valueColor: AlwaysStoppedAnimation<Color>(Colors.white.withOpacity(0.8)),
-                ),
-              ),
+      body: Container(
+        decoration: const BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+            colors: [
+              Color(0xFF667eea),
+              Color(0xFF764ba2),
+              Color(0xFFF093FB),
             ],
+          ),
+        ),
+        child: FadeTransition(
+          opacity: _fadeAnimation,
+          child: Center(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                // Ícone do bot com animações premium
+                Container(
+                  padding: const EdgeInsets.all(32),
+                  decoration: BoxDecoration(
+                    color: Colors.white.withOpacity(0.2),
+                    shape: BoxShape.circle,
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withOpacity(0.3),
+                        blurRadius: 40,
+                        spreadRadius: 10,
+                      ),
+                    ],
+                  ),
+                  child: const Icon(
+                    Icons.smart_toy_rounded,
+                    size: 100,
+                    color: Colors.white,
+                  ),
+                )
+                    .animate(onPlay: (controller) => controller.repeat())
+                    .shimmer(
+                      duration: 2000.ms,
+                      color: Colors.white.withOpacity(0.5),
+                    )
+                    .then()
+                    .shake(hz: 0.5, curve: Curves.easeInOut)
+                    .scale(
+                      begin: const Offset(1, 1),
+                      end: const Offset(1.05, 1.05),
+                      duration: 1000.ms,
+                    ),
+
+                const SizedBox(height: 48),
+
+                // Nome do app com animação
+                const Text(
+                  'Meu Bot',
+                  style: TextStyle(
+                    fontSize: 42,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.white,
+                    letterSpacing: 2,
+                    shadows: [
+                      Shadow(
+                        color: Colors.black26,
+                        offset: Offset(0, 4),
+                        blurRadius: 8,
+                      ),
+                    ],
+                  ),
+                )
+                    .animate()
+                    .fadeIn(duration: 800.ms)
+                    .scale(
+                      begin: const Offset(0.8, 0.8),
+                      curve: Curves.elasticOut,
+                      duration: 1000.ms,
+                    ),
+
+                const SizedBox(height: 16),
+
+                // Subtítulo com animação
+                Text(
+                  'Seu assistente virtual inteligente',
+                  style: TextStyle(
+                    fontSize: 18,
+                    color: Colors.white.withOpacity(0.95),
+                    fontWeight: FontWeight.w300,
+                    letterSpacing: 0.5,
+                  ),
+                )
+                    .animate()
+                    .fadeIn(delay: 400.ms, duration: 800.ms)
+                    .slideY(begin: 0.3, end: 0),
+
+                const SizedBox(height: 64),
+
+                // Indicador de loading premium
+                SizedBox(
+                  width: 50,
+                  height: 50,
+                  child: CircularProgressIndicator(
+                    strokeWidth: 4,
+                    valueColor: AlwaysStoppedAnimation<Color>(
+                      Colors.white.withOpacity(0.9),
+                    ),
+                  ),
+                )
+                    .animate(onPlay: (controller) => controller.repeat())
+                    .fade(duration: 1000.ms)
+                    .scale(
+                      begin: const Offset(0.9, 0.9),
+                      end: const Offset(1.1, 1.1),
+                      duration: 1000.ms,
+                    ),
+              ],
+            ),
           ),
         ),
       ),
