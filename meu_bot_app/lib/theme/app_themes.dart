@@ -188,7 +188,7 @@ class AppThemes {
       ),
 
       // Dialog
-      dialogTheme: DialogTheme(
+      dialogTheme: DialogThemeData(
         backgroundColor: AppDesignSystem.lightGroupedSecondaryBackground,
         elevation: 0,
         shape: RoundedRectangleBorder(
@@ -377,7 +377,7 @@ class AppThemes {
       ),
 
       // Dialog
-      dialogTheme: DialogTheme(
+      dialogTheme: DialogThemeData(
         backgroundColor: AppDesignSystem.darkSecondaryBackground,
         elevation: 0,
         shape: RoundedRectangleBorder(
