@@ -1,15 +1,16 @@
 import 'package:flutter/material.dart';
 import 'dart:async';
+import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import '../services/supabase_service.dart';
+import '../theme/theme_provider.dart';
+import '../theme/design_system.dart';
 import 'login_screen.dart';
 import 'chat_screen.dart';
 import 'onboarding_screen.dart';
 
-/// Tela de splash exibida ao iniciar o app
-///
-/// Verifica se o usuário está autenticado e redireciona automaticamente
+/// Tela de splash minimalista ao iniciar o app
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});
 
@@ -17,27 +18,10 @@ class SplashScreen extends StatefulWidget {
   State<SplashScreen> createState() => _SplashScreenState();
 }
 
-class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderStateMixin {
-  late AnimationController _controller;
-  late Animation<double> _fadeAnimation;
-
+class _SplashScreenState extends State<SplashScreen> {
   @override
   void initState() {
     super.initState();
-
-    // Configuração da animação
-    _controller = AnimationController(
-      duration: const Duration(milliseconds: 1500),
-      vsync: this,
-    );
-
-    _fadeAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
-      CurvedAnimation(parent: _controller, curve: Curves.easeIn),
-    );
-
-    _controller.forward();
-
-    // Aguarda 2 segundos e verifica autenticação
     _checkAuthAndNavigate();
   }
 
@@ -74,131 +58,89 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
   }
 
   @override
-  void dispose() {
-    _controller.dispose();
-    super.dispose();
-  }
-
-  @override
   Widget build(BuildContext context) {
+    final themeProvider = Provider.of<ThemeProvider>(context);
+    final isDark = themeProvider.isDarkMode;
+
     return Scaffold(
-      body: Container(
-        decoration: const BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-            colors: [
-              Color(0xFF667eea),
-              Color(0xFF764ba2),
-              Color(0xFFF093FB),
-            ],
-          ),
-        ),
-        child: FadeTransition(
-          opacity: _fadeAnimation,
-          child: Center(
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                // Ícone do bot com animações premium
-                Container(
-                  padding: const EdgeInsets.all(32),
-                  decoration: BoxDecoration(
-                    color: Colors.white.withOpacity(0.2),
-                    shape: BoxShape.circle,
-                    boxShadow: [
-                      BoxShadow(
-                        color: Colors.black.withOpacity(0.3),
-                        blurRadius: 40,
-                        spreadRadius: 10,
-                      ),
-                    ],
-                  ),
-                  child: const Icon(
-                    Icons.smart_toy_rounded,
-                    size: 100,
-                    color: Colors.white,
-                  ),
-                )
-                    .animate(onPlay: (controller) => controller.repeat())
-                    .shimmer(
-                      duration: 2000.ms,
-                      color: Colors.white.withOpacity(0.5),
-                    )
-                    .then()
-                    .shake(hz: 0.5, curve: Curves.easeInOut)
-                    .scale(
-                      begin: const Offset(1, 1),
-                      end: const Offset(1.05, 1.05),
-                      duration: 1000.ms,
-                    ),
+      backgroundColor: isDark
+          ? AppDesignSystem.darkBackground
+          : AppDesignSystem.lightBackground,
+      body: Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            // Logo
+            Container(
+              width: 120,
+              height: 120,
+              decoration: BoxDecoration(
+                color: isDark
+                    ? AppDesignSystem.primaryBlueDark
+                    : AppDesignSystem.primaryBlue,
+                shape: BoxShape.circle,
+                boxShadow: AppDesignSystem.shadowSoft(isDark),
+              ),
+              child: const Icon(
+                Icons.smart_toy_rounded,
+                size: 60,
+                color: Colors.white,
+              ),
+            )
+                .animate()
+                .fadeIn(duration: 600.ms)
+                .scale(begin: const Offset(0.8, 0.8), curve: Curves.easeOut),
 
-                const SizedBox(height: 48),
+            const SizedBox(height: AppDesignSystem.spacingXL),
 
-                // Nome do app com animação
-                const Text(
-                  'Meu Bot',
-                  style: TextStyle(
-                    fontSize: 42,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.white,
-                    letterSpacing: 2,
-                    shadows: [
-                      Shadow(
-                        color: Colors.black26,
-                        offset: Offset(0, 4),
-                        blurRadius: 8,
-                      ),
-                    ],
-                  ),
-                )
-                    .animate()
-                    .fadeIn(duration: 800.ms)
-                    .scale(
-                      begin: const Offset(0.8, 0.8),
-                      curve: Curves.elasticOut,
-                      duration: 1000.ms,
-                    ),
+            // Nome do app
+            Text(
+              'Meu Bot',
+              style: AppDesignSystem.largeTitle.copyWith(
+                color: isDark
+                    ? AppDesignSystem.darkPrimaryText
+                    : AppDesignSystem.lightPrimaryText,
+                fontSize: 38,
+                letterSpacing: -0.5,
+              ),
+            )
+                .animate()
+                .fadeIn(delay: 200.ms, duration: 600.ms)
+                .slideY(begin: -0.1, end: 0),
 
-                const SizedBox(height: 16),
+            const SizedBox(height: AppDesignSystem.spacingS),
 
-                // Subtítulo com animação
-                Text(
-                  'Seu assistente virtual inteligente',
-                  style: TextStyle(
-                    fontSize: 18,
-                    color: Colors.white.withOpacity(0.95),
-                    fontWeight: FontWeight.w300,
-                    letterSpacing: 0.5,
-                  ),
-                )
-                    .animate()
-                    .fadeIn(delay: 400.ms, duration: 800.ms)
-                    .slideY(begin: 0.3, end: 0),
+            // Subtítulo
+            Text(
+              'Seu assistente virtual inteligente',
+              style: AppDesignSystem.body.copyWith(
+                color: isDark
+                    ? AppDesignSystem.darkSecondaryText
+                    : AppDesignSystem.lightSecondaryText,
+                fontWeight: FontWeight.w400,
+              ),
+              textAlign: TextAlign.center,
+            )
+                .animate()
+                .fadeIn(delay: 400.ms, duration: 600.ms)
+                .slideY(begin: -0.1, end: 0),
 
-                const SizedBox(height: 64),
+            const SizedBox(height: AppDesignSystem.spacingXXL),
 
-                // Indicador de loading premium
-                SizedBox(
-                  width: 50,
-                  height: 50,
-                  child: CircularProgressIndicator(
-                    strokeWidth: 4,
-                    valueColor: AlwaysStoppedAnimation<Color>(
-                      Colors.white.withOpacity(0.9),
-                    ),
-                  ),
-                )
-                    .animate(onPlay: (controller) => controller.repeat())
-                    .fade(duration: 1000.ms)
-                    .scale(
-                      begin: const Offset(0.9, 0.9),
-                      end: const Offset(1.1, 1.1),
-                      duration: 1000.ms,
-                    ),
-              ],
-            ),
-          ),
+            // Loading indicator
+            SizedBox(
+              width: 40,
+              height: 40,
+              child: CircularProgressIndicator(
+                strokeWidth: 3,
+                valueColor: AlwaysStoppedAnimation<Color>(
+                  isDark
+                      ? AppDesignSystem.primaryBlueDark
+                      : AppDesignSystem.primaryBlue,
+                ),
+              ),
+            ).animate().fadeIn(delay: 600.ms, duration: 600.ms),
+          ],
         ),
       ),
     );

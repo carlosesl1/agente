@@ -1,13 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:flutter_animate/flutter_animate.dart';
-import 'package:glassmorphism/glassmorphism.dart';
 import '../services/supabase_service.dart';
 import '../theme/theme_provider.dart';
-import '../theme/app_themes.dart';
+import '../theme/design_system.dart';
 import 'register_screen.dart';
 
-/// Tela de Login Premium com Glassmorphism
+/// Tela de Login Minimalista - Apple Style
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
 
@@ -102,227 +101,200 @@ class _LoginScreenState extends State<LoginScreen> {
     final isDark = themeProvider.isDarkMode;
 
     return Scaffold(
-      body: Container(
-        decoration: BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-            colors: isDark
-                ? [
-                    const Color(0xFF1A1A2E),
-                    const Color(0xFF16213E),
-                    const Color(0xFF0F3460),
-                  ]
-                : [
-                    const Color(0xFF667eea),
-                    const Color(0xFF764ba2),
-                    const Color(0xFFF093FB),
-                  ],
-          ),
-        ),
-        child: SafeArea(
-          child: Center(
-            child: SingleChildScrollView(
-              padding: const EdgeInsets.all(24.0),
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  // Logo com animação
-                  _buildLogo()
-                      .animate()
-                      .fadeIn(duration: 600.ms)
-                      .scale(
-                        begin: const Offset(0.5, 0.5),
-                        duration: 500.ms,
-                        curve: Curves.elasticOut,
-                      )
-                      .then(delay: 200.ms)
-                      .shimmer(
-                        duration: 1500.ms,
-                        color: Colors.white.withOpacity(0.3),
+      backgroundColor: isDark
+          ? AppDesignSystem.darkBackground
+          : AppDesignSystem.lightBackground,
+      body: SafeArea(
+        child: Center(
+          child: SingleChildScrollView(
+            padding: const EdgeInsets.all(AppDesignSystem.spacingL),
+            child: ConstrainedBox(
+              constraints: const BoxConstraints(maxWidth: 400),
+              child: Form(
+                key: _formKey,
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    // Logo
+                    _buildLogo(isDark)
+                        .animate()
+                        .fadeIn(duration: 400.ms)
+                        .scale(
+                          begin: const Offset(0.8, 0.8),
+                          curve: Curves.easeOut,
+                        ),
+
+                    const SizedBox(height: AppDesignSystem.spacingXL),
+
+                    // Título
+                    Text(
+                      'Bem-vindo de volta',
+                      style: AppDesignSystem.largeTitle.copyWith(
+                        color: isDark
+                            ? AppDesignSystem.darkPrimaryText
+                            : AppDesignSystem.lightPrimaryText,
                       ),
+                      textAlign: TextAlign.center,
+                    )
+                        .animate()
+                        .fadeIn(delay: 100.ms, duration: 400.ms)
+                        .slideY(begin: -0.1, end: 0),
 
-                  const SizedBox(height: 40),
+                    const SizedBox(height: AppDesignSystem.spacingS),
 
-                  // Card Glassmorphism
-                  GlassmorphicContainer(
-                    width: double.infinity,
-                    height: 550,
-                    borderRadius: 24,
-                    blur: 20,
-                    alignment: Alignment.center,
-                    border: 2,
-                    linearGradient: LinearGradient(
-                      begin: Alignment.topLeft,
-                      end: Alignment.bottomRight,
-                      colors: [
-                        Colors.white.withOpacity(0.1),
-                        Colors.white.withOpacity(0.05),
-                      ],
-                    ),
-                    borderGradient: LinearGradient(
-                      begin: Alignment.topLeft,
-                      end: Alignment.bottomRight,
-                      colors: [
-                        Colors.white.withOpacity(0.5),
-                        Colors.white.withOpacity(0.2),
-                      ],
-                    ),
-                    child: Padding(
-                      padding: const EdgeInsets.all(32.0),
-                      child: Form(
-                        key: _formKey,
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.stretch,
+                    Text(
+                      'Entre para continuar',
+                      style: AppDesignSystem.body.copyWith(
+                        color: isDark
+                            ? AppDesignSystem.darkSecondaryText
+                            : AppDesignSystem.lightSecondaryText,
+                      ),
+                      textAlign: TextAlign.center,
+                    )
+                        .animate()
+                        .fadeIn(delay: 200.ms, duration: 400.ms)
+                        .slideY(begin: -0.1, end: 0),
+
+                    const SizedBox(height: AppDesignSystem.spacingXL),
+
+                    // Mensagem de erro
+                    if (_errorMessage != null)
+                      Container(
+                        padding: const EdgeInsets.all(AppDesignSystem.spacingM),
+                        margin: const EdgeInsets.only(
+                            bottom: AppDesignSystem.spacingM),
+                        decoration: BoxDecoration(
+                          color: AppDesignSystem.accentRed.withOpacity(0.1),
+                          borderRadius:
+                              BorderRadius.circular(AppDesignSystem.radiusM),
+                          border: Border.all(
+                            color: AppDesignSystem.accentRed.withOpacity(0.3),
+                          ),
+                        ),
+                        child: Row(
                           children: [
-                            // Título
-                            Text(
-                              'Bem-vindo de volta!',
-                              style: TextStyle(
-                                fontSize: 28,
-                                fontWeight: FontWeight.bold,
-                                color: Colors.white,
-                                shadows: [
-                                  Shadow(
-                                    color: Colors.black.withOpacity(0.3),
-                                    offset: const Offset(0, 2),
-                                    blurRadius: 4,
-                                  ),
-                                ],
+                            Icon(
+                              Icons.error_outline,
+                              color: AppDesignSystem.accentRed,
+                              size: 20,
+                            ),
+                            const SizedBox(width: AppDesignSystem.spacingM),
+                            Expanded(
+                              child: Text(
+                                _errorMessage!,
+                                style: AppDesignSystem.subhead.copyWith(
+                                  color: AppDesignSystem.accentRed,
+                                ),
                               ),
-                              textAlign: TextAlign.center,
-                            )
-                                .animate()
-                                .fadeIn(delay: 300.ms, duration: 600.ms)
-                                .slideY(begin: -0.3, end: 0),
-
-                            const SizedBox(height: 8),
-
-                            Text(
-                              'Entre para continuar',
-                              style: TextStyle(
-                                fontSize: 16,
-                                color: Colors.white.withOpacity(0.8),
-                              ),
-                              textAlign: TextAlign.center,
-                            )
-                                .animate()
-                                .fadeIn(delay: 400.ms, duration: 600.ms)
-                                .slideY(begin: -0.3, end: 0),
-
-                            const SizedBox(height: 32),
-
-                            // Mensagem de erro
-                            if (_errorMessage != null)
-                              Container(
-                                padding: const EdgeInsets.all(12),
-                                margin: const EdgeInsets.only(bottom: 16),
-                                decoration: BoxDecoration(
-                                  color: Colors.red.withOpacity(0.2),
-                                  borderRadius: BorderRadius.circular(12),
-                                  border: Border.all(
-                                    color: Colors.red.withOpacity(0.5),
-                                  ),
-                                ),
-                                child: Row(
-                                  children: [
-                                    const Icon(
-                                      Icons.error_outline,
-                                      color: Colors.white,
-                                    ),
-                                    const SizedBox(width: 12),
-                                    Expanded(
-                                      child: Text(
-                                        _errorMessage!,
-                                        style: const TextStyle(
-                                          color: Colors.white,
-                                        ),
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              )
-                                  .animate()
-                                  .fadeIn(duration: 300.ms)
-                                  .shake(),
-
-                            // Campo Email
-                            _buildTextField(
-                              controller: _emailController,
-                              label: 'Email',
-                              hint: 'seu@email.com',
-                              icon: Icons.email_outlined,
-                              keyboardType: TextInputType.emailAddress,
-                              validator: _validateEmail,
-                            ).animate().fadeIn(delay: 500.ms, duration: 600.ms),
-
-                            const SizedBox(height: 16),
-
-                            // Campo Senha
-                            _buildTextField(
-                              controller: _passwordController,
-                              label: 'Senha',
-                              hint: 'Sua senha',
-                              icon: Icons.lock_outline,
-                              obscureText: _obscurePassword,
-                              validator: _validatePassword,
-                              suffixIcon: IconButton(
-                                icon: Icon(
-                                  _obscurePassword
-                                      ? Icons.visibility_outlined
-                                      : Icons.visibility_off_outlined,
-                                  color: Colors.white.withOpacity(0.7),
-                                ),
-                                onPressed: () {
-                                  setState(
-                                      () => _obscurePassword = !_obscurePassword);
-                                },
-                              ),
-                            ).animate().fadeIn(delay: 600.ms, duration: 600.ms),
-
-                            const SizedBox(height: 24),
-
-                            // Botão Entrar
-                            _buildLoginButton()
-                                .animate()
-                                .fadeIn(delay: 700.ms, duration: 600.ms)
-                                .slideY(begin: 0.3, end: 0),
-
-                            const SizedBox(height: 16),
-
-                            // Link para cadastro
-                            Row(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: [
-                                Text(
-                                  'Não tem conta? ',
-                                  style: TextStyle(
-                                    color: Colors.white.withOpacity(0.8),
-                                  ),
-                                ),
-                                TextButton(
-                                  onPressed: _isLoading ? null : _navigateToRegister,
-                                  child: const Text(
-                                    'Cadastre-se',
-                                    style: TextStyle(
-                                      color: Colors.white,
-                                      fontWeight: FontWeight.bold,
-                                    ),
-                                  ),
-                                ),
-                              ],
-                            )
-                                .animate()
-                                .fadeIn(delay: 800.ms, duration: 600.ms),
+                            ),
                           ],
                         ),
+                      )
+                          .animate()
+                          .fadeIn(duration: 300.ms)
+                          .shake(),
+
+                    // Campo Email
+                    TextFormField(
+                      controller: _emailController,
+                      keyboardType: TextInputType.emailAddress,
+                      enabled: !_isLoading,
+                      validator: _validateEmail,
+                      style: AppDesignSystem.body.copyWith(
+                        color: isDark
+                            ? AppDesignSystem.darkPrimaryText
+                            : AppDesignSystem.lightPrimaryText,
                       ),
-                    ),
-                  )
-                      .animate()
-                      .fadeIn(delay: 200.ms, duration: 800.ms)
-                      .slideY(begin: 0.3, end: 0),
-                ],
+                      decoration: AppDesignSystem.inputDecoration(
+                        label: 'Email',
+                        hint: 'seu@email.com',
+                        isDark: isDark,
+                        prefixIcon: Icons.email_outlined,
+                      ),
+                    ).animate().fadeIn(delay: 300.ms, duration: 400.ms),
+
+                    const SizedBox(height: AppDesignSystem.spacingM),
+
+                    // Campo Senha
+                    TextFormField(
+                      controller: _passwordController,
+                      obscureText: _obscurePassword,
+                      enabled: !_isLoading,
+                      validator: _validatePassword,
+                      style: AppDesignSystem.body.copyWith(
+                        color: isDark
+                            ? AppDesignSystem.darkPrimaryText
+                            : AppDesignSystem.lightPrimaryText,
+                      ),
+                      decoration: AppDesignSystem.inputDecoration(
+                        label: 'Senha',
+                        hint: 'Sua senha',
+                        isDark: isDark,
+                        prefixIcon: Icons.lock_outline,
+                      ).copyWith(
+                        suffixIcon: IconButton(
+                          icon: Icon(
+                            _obscurePassword
+                                ? Icons.visibility_outlined
+                                : Icons.visibility_off_outlined,
+                            color: isDark
+                                ? AppDesignSystem.darkSecondaryText
+                                : AppDesignSystem.lightSecondaryText,
+                            size: 20,
+                          ),
+                          onPressed: () {
+                            setState(() => _obscurePassword = !_obscurePassword);
+                          },
+                        ),
+                      ),
+                    ).animate().fadeIn(delay: 400.ms, duration: 400.ms),
+
+                    const SizedBox(height: AppDesignSystem.spacingL),
+
+                    // Botão Entrar
+                    AppDesignSystem.primaryButton(
+                      text: 'Entrar',
+                      onPressed: _isLoading ? null : _handleLogin,
+                      isDark: isDark,
+                      isLoading: _isLoading,
+                    ).animate().fadeIn(delay: 500.ms, duration: 400.ms),
+
+                    const SizedBox(height: AppDesignSystem.spacingL),
+
+                    // Link para cadastro
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Text(
+                          'Não tem conta? ',
+                          style: AppDesignSystem.subhead.copyWith(
+                            color: isDark
+                                ? AppDesignSystem.darkSecondaryText
+                                : AppDesignSystem.lightSecondaryText,
+                          ),
+                        ),
+                        TextButton(
+                          onPressed: _isLoading ? null : _navigateToRegister,
+                          style: TextButton.styleFrom(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: AppDesignSystem.spacingS,
+                            ),
+                          ),
+                          child: Text(
+                            'Cadastre-se',
+                            style: AppDesignSystem.subhead.copyWith(
+                              color: isDark
+                                  ? AppDesignSystem.primaryBlueDark
+                                  : AppDesignSystem.primaryBlue,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ).animate().fadeIn(delay: 600.ms, duration: 400.ms),
+                  ],
+                ),
               ),
             ),
           ),
@@ -331,118 +303,23 @@ class _LoginScreenState extends State<LoginScreen> {
     );
   }
 
-  Widget _buildLogo() {
-    return Container(
-      width: 120,
-      height: 120,
-      decoration: BoxDecoration(
-        shape: BoxShape.circle,
-        gradient: LinearGradient(
-          colors: [
-            Colors.white.withOpacity(0.3),
-            Colors.white.withOpacity(0.1),
-          ],
+  Widget _buildLogo(bool isDark) {
+    return Center(
+      child: Container(
+        width: 100,
+        height: 100,
+        decoration: BoxDecoration(
+          color: isDark
+              ? AppDesignSystem.primaryBlueDark
+              : AppDesignSystem.primaryBlue,
+          shape: BoxShape.circle,
+          boxShadow: AppDesignSystem.shadowSoft(isDark),
         ),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.2),
-            blurRadius: 20,
-            spreadRadius: 5,
-          ),
-        ],
-      ),
-      child: const Icon(
-        Icons.chat_bubble_outline,
-        size: 60,
-        color: Colors.white,
-      ),
-    );
-  }
-
-  Widget _buildTextField({
-    required TextEditingController controller,
-    required String label,
-    required String hint,
-    required IconData icon,
-    TextInputType? keyboardType,
-    bool obscureText = false,
-    String? Function(String?)? validator,
-    Widget? suffixIcon,
-  }) {
-    return TextFormField(
-      controller: controller,
-      keyboardType: keyboardType,
-      obscureText: obscureText,
-      enabled: !_isLoading,
-      validator: validator,
-      style: const TextStyle(color: Colors.white),
-      decoration: InputDecoration(
-        labelText: label,
-        labelStyle: TextStyle(color: Colors.white.withOpacity(0.8)),
-        hintText: hint,
-        hintStyle: TextStyle(color: Colors.white.withOpacity(0.5)),
-        prefixIcon: Icon(icon, color: Colors.white.withOpacity(0.7)),
-        suffixIcon: suffixIcon,
-        border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
-          borderSide: BorderSide(color: Colors.white.withOpacity(0.3)),
+        child: const Icon(
+          Icons.chat_bubble_outline,
+          size: 50,
+          color: Colors.white,
         ),
-        enabledBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
-          borderSide: BorderSide(color: Colors.white.withOpacity(0.3)),
-        ),
-        focusedBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
-          borderSide: const BorderSide(color: Colors.white, width: 2),
-        ),
-        filled: true,
-        fillColor: Colors.white.withOpacity(0.1),
-      ),
-    );
-  }
-
-  Widget _buildLoginButton() {
-    return Container(
-      height: 56,
-      decoration: BoxDecoration(
-        gradient: const LinearGradient(
-          colors: [Color(0xFF667eea), Color(0xFF764ba2)],
-        ),
-        borderRadius: BorderRadius.circular(12),
-        boxShadow: [
-          BoxShadow(
-            color: const Color(0xFF667eea).withOpacity(0.5),
-            blurRadius: 20,
-            offset: const Offset(0, 10),
-          ),
-        ],
-      ),
-      child: ElevatedButton(
-        onPressed: _isLoading ? null : _handleLogin,
-        style: ElevatedButton.styleFrom(
-          backgroundColor: Colors.transparent,
-          shadowColor: Colors.transparent,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(12),
-          ),
-        ),
-        child: _isLoading
-            ? const SizedBox(
-                height: 24,
-                width: 24,
-                child: CircularProgressIndicator(
-                  strokeWidth: 2,
-                  valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
-                ),
-              )
-            : const Text(
-                'Entrar',
-                style: TextStyle(
-                  fontSize: 18,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.white,
-                ),
-              ),
       ),
     );
   }
