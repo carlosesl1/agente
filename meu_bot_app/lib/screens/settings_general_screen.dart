@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:settings_ui/settings_ui.dart';
 import 'package:provider/provider.dart';
 import '../services/supabase_service.dart';
-import '../providers/theme_provider.dart';
+import '../theme/theme_provider.dart';
 import 'login_screen.dart';
 
 /// Tela de configurações gerais do aplicativo
