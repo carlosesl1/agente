@@ -1,239 +1,433 @@
 import 'package:flutter/material.dart';
+import 'design_system.dart';
 
-/// Tema claro do app
+/// Temas do app baseados 100% no iOS Design System
+///
+/// Este arquivo cria ThemeData compatível com Material para uso no MaterialApp,
+/// mas usando todas as cores, tipografia e espaçamentos do iOS Human Interface Guidelines.
+///
+/// IMPORTANTE: Este arquivo serve como bridge entre MaterialApp e o design system iOS.
+/// Para componentes customizados, use AppDesignSystem diretamente.
 class AppThemes {
-  // ========== CORES PRINCIPAIS ==========
+  // ========== CORES EXPORTADAS DO DESIGN SYSTEM iOS ==========
+  // Mantidas para compatibilidade com código existente
 
-  /// Cores do tema claro
-  static const Color lightPrimary = Color(0xFF2196F3); // Azul moderno
-  static const Color lightPrimaryDark = Color(0xFF1976D2);
-  static const Color lightAccent = Color(0xFF03DAC6); // Teal
-  static const Color lightBackground = Color(0xFFF5F5F5);
-  static const Color lightSurface = Colors.white;
-  static const Color lightError = Color(0xFFB00020);
+  /// Cores do tema claro (iOS)
+  static const Color lightPrimary = AppDesignSystem.systemBlue;
+  static const Color lightPrimaryDark = AppDesignSystem.systemBlue;
+  static const Color lightAccent = AppDesignSystem.systemTeal;
+  static const Color lightBackground = AppDesignSystem.lightSecondaryBackground;
+  static const Color lightSurface = AppDesignSystem.lightGroupedSecondaryBackground;
+  static const Color lightError = AppDesignSystem.systemRed;
 
-  /// Cores do tema escuro
-  static const Color darkPrimary = Color(0xFF2196F3);
-  static const Color darkPrimaryDark = Color(0xFF1565C0);
-  static const Color darkAccent = Color(0xFF03DAC6);
-  static const Color darkBackground = Color(0xFF121212);
-  static const Color darkSurface = Color(0xFF1E1E1E);
-  static const Color darkError = Color(0xFFCF6679);
+  /// Cores do tema escuro (iOS)
+  static const Color darkPrimary = AppDesignSystem.systemBlueDark;
+  static const Color darkPrimaryDark = AppDesignSystem.systemBlueDark;
+  static const Color darkAccent = AppDesignSystem.systemTeal;
+  static const Color darkBackground = AppDesignSystem.darkPrimaryBackground;
+  static const Color darkSurface = AppDesignSystem.darkSecondaryBackground;
+  static const Color darkError = AppDesignSystem.systemRed;
 
-  // ========== CORES DO CHAT ==========
+  // ========== CORES DO CHAT (iOS) ==========
 
   /// Mensagens do usuário (light)
-  static const Color lightUserBubble = Color(0xFF2196F3);
+  static const Color lightUserBubble = AppDesignSystem.systemBlue;
   static const Color lightUserText = Colors.white;
 
   /// Mensagens do bot (light)
-  static const Color lightBotBubble = Color(0xFFE3F2FD);
-  static const Color lightBotText = Color(0xFF1A1A1A);
+  static const Color lightBotBubble = AppDesignSystem.lightSecondaryBackground;
+  static const Color lightBotText = AppDesignSystem.lightPrimaryLabel;
 
   /// Mensagens do usuário (dark)
-  static const Color darkUserBubble = Color(0xFF2196F3);
+  static const Color darkUserBubble = AppDesignSystem.systemBlueDark;
   static const Color darkUserText = Colors.white;
 
   /// Mensagens do bot (dark)
-  static const Color darkBotBubble = Color(0xFF2C2C2C);
-  static const Color darkBotText = Color(0xFFE0E0E0);
+  static const Color darkBotBubble = AppDesignSystem.darkTertiaryBackground;
+  static const Color darkBotText = AppDesignSystem.darkPrimaryLabel;
 
   /// Input field (light)
-  static const Color lightInputBackground = Color(0xFFF0F0F0);
-  static const Color lightInputText = Color(0xFF1A1A1A);
+  static const Color lightInputBackground = AppDesignSystem.lightFillTertiary;
+  static const Color lightInputText = AppDesignSystem.lightPrimaryLabel;
 
   /// Input field (dark)
-  static const Color darkInputBackground = Color(0xFF2C2C2C);
-  static const Color darkInputText = Color(0xFFE0E0E0);
+  static const Color darkInputBackground = AppDesignSystem.darkFillTertiary;
+  static const Color darkInputText = AppDesignSystem.darkPrimaryLabel;
 
-  // ========== TEMA CLARO ==========
+  // ========== TEMA CLARO (iOS-based) ==========
 
   static ThemeData get lightTheme {
     return ThemeData(
       useMaterial3: true,
       brightness: Brightness.light,
 
-      // Cores principais
-      primaryColor: lightPrimary,
-      scaffoldBackgroundColor: lightBackground,
+      // Cores principais (iOS)
+      primaryColor: AppDesignSystem.systemBlue,
+      scaffoldBackgroundColor: AppDesignSystem.lightSecondaryBackground,
 
-      // ColorScheme
+      // ColorScheme (iOS colors)
       colorScheme: const ColorScheme.light(
-        primary: lightPrimary,
-        secondary: lightAccent,
-        surface: lightSurface,
-        error: lightError,
+        primary: AppDesignSystem.systemBlue,
+        secondary: AppDesignSystem.systemTeal,
+        surface: AppDesignSystem.lightGroupedSecondaryBackground,
+        error: AppDesignSystem.systemRed,
         onPrimary: Colors.white,
-        onSecondary: Colors.black,
-        onSurface: Colors.black87,
+        onSecondary: Colors.white,
+        onSurface: AppDesignSystem.lightPrimaryLabel,
         onError: Colors.white,
       ),
 
-      // AppBar
+      // AppBar (iOS style - sem elevation, divider sutil)
       appBarTheme: const AppBarTheme(
-        backgroundColor: lightPrimary,
-        foregroundColor: Colors.white,
-        elevation: 2,
-        centerTitle: true,
-        titleTextStyle: TextStyle(
-          color: Colors.white,
-          fontSize: 20,
-          fontWeight: FontWeight.w600,
+        backgroundColor: AppDesignSystem.lightPrimaryBackground,
+        foregroundColor: AppDesignSystem.systemBlue,
+        elevation: 0, // iOS não usa elevation
+        scrolledUnderElevation: 0,
+        surfaceTintColor: Colors.transparent,
+        centerTitle: false, // iOS mantém título à esquerda
+        titleTextStyle: AppDesignSystem.headline,
+        iconTheme: IconThemeData(
+          color: AppDesignSystem.systemBlue,
+          size: 22,
         ),
-        iconTheme: IconThemeData(color: Colors.white),
       ),
 
-      // Cards
+      // Cards (iOS style)
       cardTheme: CardThemeData(
-        color: lightSurface,
-        elevation: 2,
+        color: AppDesignSystem.lightGroupedSecondaryBackground,
+        elevation: 0, // iOS usa sombras sutis via boxShadow, não elevation
         shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(12),
+          borderRadius: BorderRadius.circular(AppDesignSystem.cornerRadius12),
         ),
+        margin: const EdgeInsets.all(AppDesignSystem.spacing8),
       ),
 
       // Floating Action Button
       floatingActionButtonTheme: const FloatingActionButtonThemeData(
-        backgroundColor: lightPrimary,
+        backgroundColor: AppDesignSystem.systemBlue,
         foregroundColor: Colors.white,
+        elevation: 0,
       ),
 
-      // Input Decoration
+      // Input Decoration (iOS style)
       inputDecorationTheme: InputDecorationTheme(
         filled: true,
-        fillColor: lightInputBackground,
+        fillColor: AppDesignSystem.lightFillTertiary,
         border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(24),
+          borderRadius: BorderRadius.circular(AppDesignSystem.cornerRadius10),
           borderSide: BorderSide.none,
         ),
+        enabledBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(AppDesignSystem.cornerRadius10),
+          borderSide: BorderSide.none,
+        ),
+        focusedBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(AppDesignSystem.cornerRadius10),
+          borderSide: const BorderSide(
+            color: AppDesignSystem.systemBlue,
+            width: 2,
+          ),
+        ),
+        errorBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(AppDesignSystem.cornerRadius10),
+          borderSide: const BorderSide(
+            color: AppDesignSystem.systemRed,
+            width: 1,
+          ),
+        ),
         contentPadding: const EdgeInsets.symmetric(
-          horizontal: 20,
-          vertical: 12,
+          horizontal: AppDesignSystem.spacing16,
+          vertical: AppDesignSystem.spacing12,
+        ),
+        labelStyle: AppDesignSystem.callout.copyWith(
+          color: AppDesignSystem.lightSecondaryLabel,
+        ),
+        hintStyle: AppDesignSystem.callout.copyWith(
+          color: AppDesignSystem.lightTertiaryLabel,
         ),
       ),
 
-      // Text Theme
+      // Text Theme (SF Pro typography)
       textTheme: const TextTheme(
-        displayLarge: TextStyle(
-          fontSize: 32,
-          fontWeight: FontWeight.bold,
-          color: Colors.black87,
-        ),
-        bodyLarge: TextStyle(
-          fontSize: 16,
-          color: Colors.black87,
-        ),
-        bodyMedium: TextStyle(
-          fontSize: 14,
-          color: Colors.black87,
-        ),
+        displayLarge: AppDesignSystem.largeTitle,
+        displayMedium: AppDesignSystem.title1,
+        displaySmall: AppDesignSystem.title2,
+        headlineMedium: AppDesignSystem.title3,
+        headlineSmall: AppDesignSystem.headline,
+        titleLarge: AppDesignSystem.headline,
+        titleMedium: AppDesignSystem.callout,
+        titleSmall: AppDesignSystem.subheadline,
+        bodyLarge: AppDesignSystem.body,
+        bodyMedium: AppDesignSystem.callout,
+        bodySmall: AppDesignSystem.footnote,
+        labelLarge: AppDesignSystem.headline,
+        labelMedium: AppDesignSystem.subheadline,
+        labelSmall: AppDesignSystem.caption1,
       ),
 
       // Icon Theme
       iconTheme: const IconThemeData(
-        color: lightPrimary,
+        color: AppDesignSystem.systemBlue,
+        size: 22,
       ),
 
-      // Divider
+      // Divider (iOS style - muito fino)
       dividerTheme: const DividerThemeData(
-        color: Color(0xFFE0E0E0),
-        thickness: 1,
+        color: AppDesignSystem.lightSeparator,
+        thickness: 0.5,
+        space: 0.5,
+      ),
+
+      // Bottom Navigation Bar
+      bottomNavigationBarTheme: const BottomNavigationBarThemeData(
+        backgroundColor: AppDesignSystem.lightPrimaryBackground,
+        selectedItemColor: AppDesignSystem.systemBlue,
+        unselectedItemColor: AppDesignSystem.lightSecondaryLabel,
+        elevation: 0,
+        type: BottomNavigationBarType.fixed,
+      ),
+
+      // Dialog
+      dialogTheme: DialogTheme(
+        backgroundColor: AppDesignSystem.lightGroupedSecondaryBackground,
+        elevation: 0,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(AppDesignSystem.cornerRadius16),
+        ),
+      ),
+
+      // Elevated Button (iOS style)
+      elevatedButtonTheme: ElevatedButtonThemeData(
+        style: ElevatedButton.styleFrom(
+          backgroundColor: AppDesignSystem.systemBlue,
+          foregroundColor: Colors.white,
+          elevation: 0,
+          shadowColor: Colors.transparent,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(AppDesignSystem.cornerRadius12),
+          ),
+          padding: const EdgeInsets.symmetric(
+            horizontal: AppDesignSystem.spacing20,
+            vertical: AppDesignSystem.spacing12,
+          ),
+          textStyle: AppDesignSystem.headline,
+        ),
+      ),
+
+      // Outlined Button (iOS style)
+      outlinedButtonTheme: OutlinedButtonThemeData(
+        style: OutlinedButton.styleFrom(
+          foregroundColor: AppDesignSystem.systemBlue,
+          side: const BorderSide(
+            color: AppDesignSystem.systemBlue,
+            width: 1,
+          ),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(AppDesignSystem.cornerRadius12),
+          ),
+          padding: const EdgeInsets.symmetric(
+            horizontal: AppDesignSystem.spacing20,
+            vertical: AppDesignSystem.spacing12,
+          ),
+          textStyle: AppDesignSystem.headline,
+        ),
+      ),
+
+      // Text Button
+      textButtonTheme: TextButtonThemeData(
+        style: TextButton.styleFrom(
+          foregroundColor: AppDesignSystem.systemBlue,
+          textStyle: AppDesignSystem.body,
+        ),
       ),
     );
   }
 
-  // ========== TEMA ESCURO ==========
+  // ========== TEMA ESCURO (iOS-based) ==========
 
   static ThemeData get darkTheme {
     return ThemeData(
       useMaterial3: true,
       brightness: Brightness.dark,
 
-      // Cores principais
-      primaryColor: darkPrimary,
-      scaffoldBackgroundColor: darkBackground,
+      // Cores principais (iOS Dark)
+      primaryColor: AppDesignSystem.systemBlueDark,
+      scaffoldBackgroundColor: AppDesignSystem.darkPrimaryBackground,
 
-      // ColorScheme
+      // ColorScheme (iOS dark colors)
       colorScheme: const ColorScheme.dark(
-        primary: darkPrimary,
-        secondary: darkAccent,
-        surface: darkSurface,
-        error: darkError,
+        primary: AppDesignSystem.systemBlueDark,
+        secondary: AppDesignSystem.systemTeal,
+        surface: AppDesignSystem.darkSecondaryBackground,
+        error: AppDesignSystem.systemRed,
         onPrimary: Colors.white,
-        onSecondary: Colors.black,
-        onSurface: Colors.white,
-        onError: Colors.black,
+        onSecondary: Colors.white,
+        onSurface: AppDesignSystem.darkPrimaryLabel,
+        onError: Colors.white,
       ),
 
-      // AppBar
+      // AppBar (iOS dark style)
       appBarTheme: const AppBarTheme(
-        backgroundColor: darkSurface,
-        foregroundColor: Colors.white,
+        backgroundColor: AppDesignSystem.darkPrimaryBackground,
+        foregroundColor: AppDesignSystem.systemBlueDark,
         elevation: 0,
-        centerTitle: true,
-        titleTextStyle: TextStyle(
-          color: Colors.white,
-          fontSize: 20,
-          fontWeight: FontWeight.w600,
+        scrolledUnderElevation: 0,
+        surfaceTintColor: Colors.transparent,
+        centerTitle: false,
+        titleTextStyle: AppDesignSystem.headline,
+        iconTheme: IconThemeData(
+          color: AppDesignSystem.systemBlueDark,
+          size: 22,
         ),
-        iconTheme: IconThemeData(color: Colors.white),
       ),
 
-      // Cards
+      // Cards (iOS dark style)
       cardTheme: CardThemeData(
-        color: darkSurface,
-        elevation: 4,
+        color: AppDesignSystem.darkSecondaryBackground,
+        elevation: 0,
         shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(12),
+          borderRadius: BorderRadius.circular(AppDesignSystem.cornerRadius12),
         ),
+        margin: const EdgeInsets.all(AppDesignSystem.spacing8),
       ),
 
       // Floating Action Button
       floatingActionButtonTheme: const FloatingActionButtonThemeData(
-        backgroundColor: darkPrimary,
+        backgroundColor: AppDesignSystem.systemBlueDark,
         foregroundColor: Colors.white,
+        elevation: 0,
       ),
 
-      // Input Decoration
+      // Input Decoration (iOS dark style)
       inputDecorationTheme: InputDecorationTheme(
         filled: true,
-        fillColor: darkInputBackground,
+        fillColor: AppDesignSystem.darkFillTertiary,
         border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(24),
+          borderRadius: BorderRadius.circular(AppDesignSystem.cornerRadius10),
           borderSide: BorderSide.none,
         ),
+        enabledBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(AppDesignSystem.cornerRadius10),
+          borderSide: BorderSide.none,
+        ),
+        focusedBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(AppDesignSystem.cornerRadius10),
+          borderSide: const BorderSide(
+            color: AppDesignSystem.systemBlueDark,
+            width: 2,
+          ),
+        ),
+        errorBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(AppDesignSystem.cornerRadius10),
+          borderSide: const BorderSide(
+            color: AppDesignSystem.systemRed,
+            width: 1,
+          ),
+        ),
         contentPadding: const EdgeInsets.symmetric(
-          horizontal: 20,
-          vertical: 12,
+          horizontal: AppDesignSystem.spacing16,
+          vertical: AppDesignSystem.spacing12,
+        ),
+        labelStyle: AppDesignSystem.callout.copyWith(
+          color: AppDesignSystem.darkSecondaryLabel,
+        ),
+        hintStyle: AppDesignSystem.callout.copyWith(
+          color: AppDesignSystem.darkTertiaryLabel,
         ),
       ),
 
-      // Text Theme
+      // Text Theme (SF Pro typography)
       textTheme: const TextTheme(
-        displayLarge: TextStyle(
-          fontSize: 32,
-          fontWeight: FontWeight.bold,
-          color: Colors.white,
-        ),
-        bodyLarge: TextStyle(
-          fontSize: 16,
-          color: Colors.white,
-        ),
-        bodyMedium: TextStyle(
-          fontSize: 14,
-          color: Color(0xFFB0B0B0),
-        ),
+        displayLarge: AppDesignSystem.largeTitle,
+        displayMedium: AppDesignSystem.title1,
+        displaySmall: AppDesignSystem.title2,
+        headlineMedium: AppDesignSystem.title3,
+        headlineSmall: AppDesignSystem.headline,
+        titleLarge: AppDesignSystem.headline,
+        titleMedium: AppDesignSystem.callout,
+        titleSmall: AppDesignSystem.subheadline,
+        bodyLarge: AppDesignSystem.body,
+        bodyMedium: AppDesignSystem.callout,
+        bodySmall: AppDesignSystem.footnote,
+        labelLarge: AppDesignSystem.headline,
+        labelMedium: AppDesignSystem.subheadline,
+        labelSmall: AppDesignSystem.caption1,
       ),
 
       // Icon Theme
       iconTheme: const IconThemeData(
-        color: darkPrimary,
+        color: AppDesignSystem.systemBlueDark,
+        size: 22,
       ),
 
-      // Divider
+      // Divider (iOS dark style)
       dividerTheme: const DividerThemeData(
-        color: Color(0xFF3A3A3A),
-        thickness: 1,
+        color: AppDesignSystem.darkSeparator,
+        thickness: 0.5,
+        space: 0.5,
+      ),
+
+      // Bottom Navigation Bar
+      bottomNavigationBarTheme: const BottomNavigationBarThemeData(
+        backgroundColor: AppDesignSystem.darkPrimaryBackground,
+        selectedItemColor: AppDesignSystem.systemBlueDark,
+        unselectedItemColor: AppDesignSystem.darkSecondaryLabel,
+        elevation: 0,
+        type: BottomNavigationBarType.fixed,
+      ),
+
+      // Dialog
+      dialogTheme: DialogTheme(
+        backgroundColor: AppDesignSystem.darkSecondaryBackground,
+        elevation: 0,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(AppDesignSystem.cornerRadius16),
+        ),
+      ),
+
+      // Elevated Button (iOS dark style)
+      elevatedButtonTheme: ElevatedButtonThemeData(
+        style: ElevatedButton.styleFrom(
+          backgroundColor: AppDesignSystem.systemBlueDark,
+          foregroundColor: Colors.white,
+          elevation: 0,
+          shadowColor: Colors.transparent,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(AppDesignSystem.cornerRadius12),
+          ),
+          padding: const EdgeInsets.symmetric(
+            horizontal: AppDesignSystem.spacing20,
+            vertical: AppDesignSystem.spacing12,
+          ),
+          textStyle: AppDesignSystem.headline,
+        ),
+      ),
+
+      // Outlined Button (iOS dark style)
+      outlinedButtonTheme: OutlinedButtonThemeData(
+        style: OutlinedButton.styleFrom(
+          foregroundColor: AppDesignSystem.systemBlueDark,
+          side: const BorderSide(
+            color: AppDesignSystem.systemBlueDark,
+            width: 1,
+          ),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(AppDesignSystem.cornerRadius12),
+          ),
+          padding: const EdgeInsets.symmetric(
+            horizontal: AppDesignSystem.spacing20,
+            vertical: AppDesignSystem.spacing12,
+          ),
+          textStyle: AppDesignSystem.headline,
+        ),
+      ),
+
+      // Text Button
+      textButtonTheme: TextButtonThemeData(
+        style: TextButton.styleFrom(
+          foregroundColor: AppDesignSystem.systemBlueDark,
+          textStyle: AppDesignSystem.body,
+        ),
       ),
     );
   }
