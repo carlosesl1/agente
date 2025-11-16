@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import '../models/assistant_model.dart';
 import '../providers/assistant_provider.dart';
 import '../screens/assistant_edit_screen.dart';
+import '../screens/settings_general_screen.dart';
 
 /// Drawer lateral com lista de assistentes
 class AssistantsDrawer extends StatelessWidget {
@@ -28,6 +29,9 @@ class AssistantsDrawer extends StatelessWidget {
 
             // Botão Novo Assistente
             _buildNewAssistantButton(context),
+
+            // Botão Configurações Gerais
+            _buildSettingsButton(context),
           ],
         ),
       ),
@@ -213,6 +217,32 @@ class AssistantsDrawer extends StatelessWidget {
           context,
           MaterialPageRoute(
             builder: (context) => const AssistantEditScreen(),
+          ),
+        );
+      },
+    );
+  }
+
+  Widget _buildSettingsButton(BuildContext context) {
+    return ListTile(
+      leading: Container(
+        padding: const EdgeInsets.all(8),
+        decoration: BoxDecoration(
+          color: Colors.grey.withOpacity(0.1),
+          borderRadius: BorderRadius.circular(8),
+        ),
+        child: const Icon(
+          Icons.settings_outlined,
+          color: Colors.grey,
+        ),
+      ),
+      title: const Text('Configurações'),
+      onTap: () {
+        Navigator.pop(context); // Fecha o drawer
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => const SettingsGeneralScreen(),
           ),
         );
       },

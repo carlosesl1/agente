@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import 'dart:async';
+import 'package:shared_preferences/shared_preferences.dart';
 import '../services/supabase_service.dart';
 import 'login_screen.dart';
 import 'chat_screen.dart';
+import 'onboarding_screen.dart';
 
 /// Tela de splash exibida ao iniciar o app
 ///
@@ -44,6 +46,18 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
     await Future.delayed(const Duration(seconds: 2));
 
     if (!mounted) return;
+
+    // Verifica se é a primeira vez
+    final prefs = await SharedPreferences.getInstance();
+    final onboardingCompleted = prefs.getBool('onboarding_completed') ?? false;
+
+    // Se não completou onboarding, mostra a introdução
+    if (!onboardingCompleted) {
+      Navigator.of(context).pushReplacement(
+        MaterialPageRoute(builder: (_) => const OnboardingScreen()),
+      );
+      return;
+    }
 
     // Verifica se usuário está autenticado
     final isAuthenticated = SupabaseService.isAuthenticated();
