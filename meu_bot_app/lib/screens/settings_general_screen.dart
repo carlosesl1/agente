@@ -3,6 +3,7 @@ import 'package:settings_ui/settings_ui.dart';
 import 'package:provider/provider.dart';
 import '../services/supabase_service.dart';
 import '../theme/theme_provider.dart';
+import '../theme/design_system.dart';
 import 'login_screen.dart';
 
 /// Tela de configurações gerais do aplicativo
@@ -159,54 +160,30 @@ class _SettingsGeneralScreenState extends State<SettingsGeneralScreen> {
         content: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            ListTile(
-              leading: const Text('🇧🇷'),
-              title: const Text('Português (Brasil)'),
-              trailing: _selectedLanguage == 'pt_BR'
-                  ? const Icon(Icons.check, color: Colors.green)
-                  : null,
-              onTap: () {
-                setState(() => _selectedLanguage = 'pt_BR');
-                _saveSettings();
-                Navigator.pop(context);
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(content: Text('Idioma alterado')),
-                );
-              },
-            ),
-            ListTile(
-              leading: const Text('🇺🇸'),
-              title: const Text('English (US)'),
-              trailing: _selectedLanguage == 'en_US'
-                  ? const Icon(Icons.check, color: Colors.green)
-                  : null,
-              onTap: () {
-                setState(() => _selectedLanguage = 'en_US');
-                _saveSettings();
-                Navigator.pop(context);
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(content: Text('Language changed')),
-                );
-              },
-            ),
-            ListTile(
-              leading: const Text('🇪🇸'),
-              title: const Text('Español'),
-              trailing: _selectedLanguage == 'es_ES'
-                  ? const Icon(Icons.check, color: Colors.green)
-                  : null,
-              onTap: () {
-                setState(() => _selectedLanguage = 'es_ES');
-                _saveSettings();
-                Navigator.pop(context);
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(content: Text('Idioma cambiado')),
-                );
-              },
-            ),
+            _buildLanguageTile('🇧🇷', 'Português (Brasil)', 'pt_BR', 'Idioma alterado'),
+            _buildLanguageTile('🇺🇸', 'English (US)', 'en_US', 'Language changed'),
+            _buildLanguageTile('🇪🇸', 'Español', 'es_ES', 'Idioma cambiado'),
           ],
         ),
       ),
+    );
+  }
+
+  Widget _buildLanguageTile(String flag, String name, String code, String message) {
+    return ListTile(
+      leading: Text(flag, style: const TextStyle(fontSize: 24)),
+      title: Text(name),
+      trailing: _selectedLanguage == code
+          ? Icon(Icons.check, color: AppDesignSystem.primaryBlue)
+          : null,
+      onTap: () {
+        setState(() => _selectedLanguage = code);
+        _saveSettings();
+        Navigator.pop(context);
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(message)),
+        );
+      },
     );
   }
 
@@ -221,9 +198,11 @@ class _SettingsGeneralScreenState extends State<SettingsGeneralScreen> {
             onPressed: () => Navigator.pop(context, false),
             child: const Text('Cancelar'),
           ),
-          ElevatedButton(
+          TextButton(
             onPressed: () => Navigator.pop(context, true),
-            style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
+            style: TextButton.styleFrom(
+              foregroundColor: AppDesignSystem.accentRed,
+            ),
             child: const Text('Sair'),
           ),
         ],
@@ -261,31 +240,53 @@ class _SettingsGeneralScreenState extends State<SettingsGeneralScreen> {
     final isDark = themeProvider.isDarkMode;
 
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Configurações'),
-        elevation: 0,
+      backgroundColor: isDark
+          ? AppDesignSystem.darkBackground
+          : AppDesignSystem.lightBackground,
+      appBar: AppDesignSystem.appBar(
+        title: 'Configurações',
+        isDark: isDark,
       ),
       body: SettingsList(
         platform: DevicePlatform.iOS,
-        darkTheme: const SettingsThemeData(
-          settingsListBackground: Color(0xFF121212),
-          titleTextColor: Colors.white,
+        darkTheme: SettingsThemeData(
+          settingsListBackground: AppDesignSystem.darkBackground,
+          titleTextColor: AppDesignSystem.darkPrimaryText,
+          settingsSectionBackground: AppDesignSystem.darkSecondaryBackground,
         ),
-        lightTheme: const SettingsThemeData(
-          settingsListBackground: Color(0xFFF5F5F5),
+        lightTheme: SettingsThemeData(
+          settingsListBackground: AppDesignSystem.lightGroupedBackground,
+          settingsSectionBackground: AppDesignSystem.lightBackground,
         ),
         sections: [
           // Seção: Conta
           SettingsSection(
-            title: const Text('Conta'),
+            title: Text(
+              'Conta',
+              style: AppDesignSystem.caption1.copyWith(
+                color: isDark
+                    ? AppDesignSystem.darkSecondaryText
+                    : AppDesignSystem.lightSecondaryText,
+              ),
+            ),
             tiles: [
               SettingsTile(
-                leading: const Icon(Icons.email_outlined),
+                leading: Icon(
+                  Icons.email_outlined,
+                  color: isDark
+                      ? AppDesignSystem.darkSecondaryText
+                      : AppDesignSystem.lightSecondaryText,
+                ),
                 title: const Text('Email'),
                 value: Text(currentUser?.email ?? 'Não disponível'),
               ),
               SettingsTile.navigation(
-                leading: const Icon(Icons.person_outline),
+                leading: Icon(
+                  Icons.person_outline,
+                  color: isDark
+                      ? AppDesignSystem.darkSecondaryText
+                      : AppDesignSystem.lightSecondaryText,
+                ),
                 title: const Text('Editar Perfil'),
                 value: Text(
                   currentUser?.userMetadata?['name'] ?? 'Configurar nome',
@@ -293,7 +294,12 @@ class _SettingsGeneralScreenState extends State<SettingsGeneralScreen> {
                 onPressed: (_) => _showEditProfileDialog(),
               ),
               SettingsTile.navigation(
-                leading: const Icon(Icons.lock_outline),
+                leading: Icon(
+                  Icons.lock_outline,
+                  color: isDark
+                      ? AppDesignSystem.darkSecondaryText
+                      : AppDesignSystem.lightSecondaryText,
+                ),
                 title: const Text('Alterar Senha'),
                 onPressed: (_) => _showChangePasswordDialog(),
               ),
@@ -302,7 +308,14 @@ class _SettingsGeneralScreenState extends State<SettingsGeneralScreen> {
 
           // Seção: Preferências
           SettingsSection(
-            title: const Text('Preferências'),
+            title: Text(
+              'Preferências',
+              style: AppDesignSystem.caption1.copyWith(
+                color: isDark
+                    ? AppDesignSystem.darkSecondaryText
+                    : AppDesignSystem.lightSecondaryText,
+              ),
+            ),
             tiles: [
               SettingsTile.switchTile(
                 onToggle: (value) {
@@ -319,13 +332,23 @@ class _SettingsGeneralScreenState extends State<SettingsGeneralScreen> {
                   );
                 },
                 initialValue: _notificationsEnabled,
-                leading: const Icon(Icons.notifications_outlined),
+                leading: Icon(
+                  Icons.notifications_outlined,
+                  color: isDark
+                      ? AppDesignSystem.darkSecondaryText
+                      : AppDesignSystem.lightSecondaryText,
+                ),
                 title: const Text('Notificações'),
                 description:
                     const Text('Receber notificações de novas mensagens'),
               ),
               SettingsTile.navigation(
-                leading: const Icon(Icons.language_outlined),
+                leading: Icon(
+                  Icons.language_outlined,
+                  color: isDark
+                      ? AppDesignSystem.darkSecondaryText
+                      : AppDesignSystem.lightSecondaryText,
+                ),
                 title: const Text('Idioma'),
                 value: Text(_languageDisplay),
                 onPressed: (_) => _showLanguageDialog(),
@@ -333,6 +356,9 @@ class _SettingsGeneralScreenState extends State<SettingsGeneralScreen> {
               SettingsTile(
                 leading: Icon(
                   isDark ? Icons.dark_mode : Icons.light_mode,
+                  color: isDark
+                      ? AppDesignSystem.darkSecondaryText
+                      : AppDesignSystem.lightSecondaryText,
                 ),
                 title: const Text('Tema'),
                 value: const Text('Segue o sistema'),
@@ -343,22 +369,44 @@ class _SettingsGeneralScreenState extends State<SettingsGeneralScreen> {
 
           // Seção: Sobre
           SettingsSection(
-            title: const Text('Sobre'),
+            title: Text(
+              'Sobre',
+              style: AppDesignSystem.caption1.copyWith(
+                color: isDark
+                    ? AppDesignSystem.darkSecondaryText
+                    : AppDesignSystem.lightSecondaryText,
+              ),
+            ),
             tiles: [
               SettingsTile(
-                leading: const Icon(Icons.info_outline),
+                leading: Icon(
+                  Icons.info_outline,
+                  color: isDark
+                      ? AppDesignSystem.darkSecondaryText
+                      : AppDesignSystem.lightSecondaryText,
+                ),
                 title: const Text('Versão'),
                 value: const Text('1.0.0'),
               ),
               SettingsTile.navigation(
-                leading: const Icon(Icons.help_outline),
+                leading: Icon(
+                  Icons.help_outline,
+                  color: isDark
+                      ? AppDesignSystem.darkSecondaryText
+                      : AppDesignSystem.lightSecondaryText,
+                ),
                 title: const Text('Ajuda e Suporte'),
                 onPressed: (_) {
                   // TODO: Abrir tela de ajuda
                 },
               ),
               SettingsTile.navigation(
-                leading: const Icon(Icons.privacy_tip_outlined),
+                leading: Icon(
+                  Icons.privacy_tip_outlined,
+                  color: isDark
+                      ? AppDesignSystem.darkSecondaryText
+                      : AppDesignSystem.lightSecondaryText,
+                ),
                 title: const Text('Política de Privacidade'),
                 onPressed: (_) {
                   // TODO: Abrir política de privacidade
@@ -371,10 +419,10 @@ class _SettingsGeneralScreenState extends State<SettingsGeneralScreen> {
           SettingsSection(
             tiles: [
               SettingsTile.navigation(
-                leading: const Icon(Icons.logout, color: Colors.red),
-                title: const Text(
+                leading: Icon(Icons.logout, color: AppDesignSystem.accentRed),
+                title: Text(
                   'Sair',
-                  style: TextStyle(color: Colors.red),
+                  style: TextStyle(color: AppDesignSystem.accentRed),
                 ),
                 onPressed: (_) => _handleLogout(),
               ),
