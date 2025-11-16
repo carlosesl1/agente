@@ -22,6 +22,9 @@ class AppDesignSystem {
   static const Color systemIndigo = Color(0xFF5856D6);
   static const Color systemTeal = Color(0xFF5AC8FA);
 
+  /// System Gray - cor neutra que funciona em light e dark mode
+  static const Color systemGray = Color(0xFF8E8E93);
+
   /// Backgrounds - Light Mode (iOS style)
   static const Color lightPrimaryBackground = Color(0xFFFFFFFF);
   static const Color lightSecondaryBackground = Color(0xFFF2F2F7);

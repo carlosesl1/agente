@@ -48,7 +48,7 @@ class _AssistantEditScreenState extends State<AssistantEditScreen> {
     _selectedPrimaryColor = widget.assistant?.primaryColor ??
         AssistantService.defaultColors[0];
     _selectedSecondaryColor = widget.assistant?.secondaryColor ??
-        const Color(0xFF9E9E9E);
+        AppDesignSystem.systemGray;
   }
 
   @override

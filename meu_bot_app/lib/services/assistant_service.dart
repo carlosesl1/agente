@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../models/assistant_model.dart';
+import '../theme/design_system.dart';
 import 'supabase_service.dart';
 
 /// Serviço para gerenciar assistentes virtuais
@@ -161,7 +162,7 @@ class AssistantService {
       name: 'Assistente Geral',
       webhookUrl: '', // Deve ser configurado nas settings
       primaryColor: defaultColors[0],
-      secondaryColor: const Color(0xFF9E9E9E),
+      secondaryColor: AppDesignSystem.systemGray,
     );
   }
 }

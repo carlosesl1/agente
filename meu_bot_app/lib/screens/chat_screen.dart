@@ -723,7 +723,9 @@ class _ChatScreenState extends State<ChatScreen> with AutomaticKeepAliveClientMi
           ),
           TextButton(
             onPressed: () => Navigator.pop(context, true),
-            style: TextButton.styleFrom(foregroundColor: Colors.red),
+            style: TextButton.styleFrom(
+              foregroundColor: AppDesignSystem.systemRed,
+            ),
             child: const Text('Sair'),
           ),
         ],
@@ -1016,8 +1018,13 @@ class _ChatScreenState extends State<ChatScreen> with AutomaticKeepAliveClientMi
           // Indicador de loading ao carregar mais mensagens
           if (_isLoadingMore && !_isLoadingHistory)
             Container(
-              padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
-              color: isDark ? Colors.black26 : Colors.white70,
+              padding: EdgeInsets.symmetric(
+                vertical: AppDesignSystem.spacing8,
+                horizontal: AppDesignSystem.spacing16,
+              ),
+              color: isDark
+                  ? AppDesignSystem.darkSecondaryBackground.withOpacity(0.5)
+                  : AppDesignSystem.lightSecondaryBackground.withOpacity(0.7),
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
@@ -1027,16 +1034,19 @@ class _ChatScreenState extends State<ChatScreen> with AutomaticKeepAliveClientMi
                     child: CircularProgressIndicator(
                       strokeWidth: 2,
                       valueColor: AlwaysStoppedAnimation<Color>(
-                        isDark ? Colors.white70 : Colors.black54,
+                        isDark
+                            ? AppDesignSystem.darkSecondaryLabel
+                            : AppDesignSystem.lightSecondaryLabel,
                       ),
                     ),
                   ),
-                  const SizedBox(width: 12),
+                  SizedBox(width: AppDesignSystem.spacing12),
                   Text(
                     'Carregando mensagens antigas...',
-                    style: TextStyle(
-                      fontSize: 12,
-                      color: isDark ? Colors.white70 : Colors.black54,
+                    style: AppDesignSystem.caption1.copyWith(
+                      color: isDark
+                          ? AppDesignSystem.darkSecondaryLabel
+                          : AppDesignSystem.lightSecondaryLabel,
                     ),
                   ),
                 ],
@@ -1156,16 +1166,21 @@ class _ChatScreenState extends State<ChatScreen> with AutomaticKeepAliveClientMi
 
   /// Widget para o estado vazio (sem mensagens)
   Widget _buildEmptyState() {
+    final themeProvider = Provider.of<ThemeProvider>(context, listen: false);
+    final isDark = themeProvider.isDarkMode;
+
     return Center(
       child: Padding(
-        padding: const EdgeInsets.all(32.0),
+        padding: EdgeInsets.all(AppDesignSystem.spacing32),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Icon(
               Icons.chat_bubble_outline,
               size: 80,
-              color: Colors.grey[300],
+              color: isDark
+                  ? AppDesignSystem.darkFillTertiary
+                  : AppDesignSystem.lightFillTertiary,
             )
                 .animate()
                 .fadeIn(duration: 600.ms)
@@ -1173,25 +1188,26 @@ class _ChatScreenState extends State<ChatScreen> with AutomaticKeepAliveClientMi
                   begin: const Offset(0.5, 0.5),
                   curve: Curves.elasticOut,
                 ),
-            const SizedBox(height: 16),
+            SizedBox(height: AppDesignSystem.spacing16),
             Text(
               'Nenhuma mensagem ainda',
-              style: TextStyle(
-                fontSize: 18,
-                fontWeight: FontWeight.w500,
-                color: Colors.grey[600],
+              style: AppDesignSystem.headline.copyWith(
+                color: isDark
+                    ? AppDesignSystem.darkSecondaryLabel
+                    : AppDesignSystem.lightSecondaryLabel,
               ),
             )
                 .animate()
                 .fadeIn(delay: 200.ms, duration: 600.ms)
                 .slideY(begin: 0.2, end: 0),
-            const SizedBox(height: 8),
+            SizedBox(height: AppDesignSystem.spacing8),
             Text(
               'Envie uma mensagem para começar a conversar com o bot!',
               textAlign: TextAlign.center,
-              style: TextStyle(
-                fontSize: 14,
-                color: Colors.grey[500],
+              style: AppDesignSystem.subheadline.copyWith(
+                color: isDark
+                    ? AppDesignSystem.darkTertiaryLabel
+                    : AppDesignSystem.lightTertiaryLabel,
               ),
             )
                 .animate()
