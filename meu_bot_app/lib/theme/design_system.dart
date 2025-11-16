@@ -312,6 +312,57 @@ class AppDesignSystem {
     );
   }
 
+  /// Botão secundário iOS (outline style)
+  static Widget secondaryButton({
+    required String text,
+    required VoidCallback? onPressed,
+    required bool isDark,
+    bool isLoading = false,
+    IconData? icon,
+  }) {
+    final color = isDark ? systemBlueDark : systemBlue;
+
+    return SizedBox(
+      height: 50,
+      child: OutlinedButton(
+        onPressed: isLoading ? null : onPressed,
+        style: OutlinedButton.styleFrom(
+          foregroundColor: color,
+          side: BorderSide(
+            color: color,
+            width: 1,
+          ),
+          backgroundColor: Colors.transparent,
+          elevation: 0,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(cornerRadius12),
+          ),
+          padding: const EdgeInsets.symmetric(horizontal: spacing20),
+        ),
+        child: isLoading
+            ? SizedBox(
+                width: 20,
+                height: 20,
+                child: CircularProgressIndicator(
+                  strokeWidth: 2,
+                  valueColor: AlwaysStoppedAnimation<Color>(color),
+                ),
+              )
+            : Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  if (icon != null) ...[
+                    Icon(icon, size: 18),
+                    const SizedBox(width: spacing8),
+                  ],
+                  Text(text, style: headline),
+                ],
+              ),
+      ),
+    );
+  }
+
   /// Input field iOS
   static InputDecoration inputDecoration({
     required String label,

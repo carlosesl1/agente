@@ -183,7 +183,7 @@ class _LoginScreenState extends State<LoginScreen> {
                             Expanded(
                               child: Text(
                                 _errorMessage!,
-                                style: AppDesignSystem.subhead.copyWith(
+                                style: AppDesignSystem.subheadline.copyWith(
                                   color: AppDesignSystem.systemRed,
                                 ),
                               ),
@@ -268,7 +268,7 @@ class _LoginScreenState extends State<LoginScreen> {
                       children: [
                         Text(
                           'Não tem conta? ',
-                          style: AppDesignSystem.subhead.copyWith(
+                          style: AppDesignSystem.subheadline.copyWith(
                             color: isDark
                                 ? AppDesignSystem.darkSecondaryLabel
                                 : AppDesignSystem.lightSecondaryLabel,
@@ -283,7 +283,7 @@ class _LoginScreenState extends State<LoginScreen> {
                           ),
                           child: Text(
                             'Cadastre-se',
-                            style: AppDesignSystem.subhead.copyWith(
+                            style: AppDesignSystem.subheadline.copyWith(
                               color: isDark
                                   ? AppDesignSystem.systemBlueDark
                                   : AppDesignSystem.systemBlue,

@@ -126,7 +126,7 @@ class AssistantsDrawer extends StatelessWidget {
                   Text(
                     'Nenhum assistente criado.\nToque em "+" para criar um.',
                     textAlign: TextAlign.center,
-                    style: AppDesignSystem.subhead.copyWith(
+                    style: AppDesignSystem.subheadline.copyWith(
                       color: isDark
                           ? AppDesignSystem.darkSecondaryLabel
                           : AppDesignSystem.lightSecondaryLabel,
