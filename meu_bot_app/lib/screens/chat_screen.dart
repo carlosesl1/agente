@@ -21,6 +21,7 @@ import '../widgets/assistants_drawer.dart';
 import '../screens/assistant_edit_screen.dart';
 import '../theme/app_themes.dart';
 import '../theme/theme_provider.dart';
+import '../theme/design_system.dart';
 import 'login_screen.dart';
 import 'settings_screen.dart';
 
@@ -612,18 +613,26 @@ class _ChatScreenState extends State<ChatScreen> with AutomaticKeepAliveClientMi
         content: Row(
           children: [
             const Icon(Icons.error_outline, color: Colors.white),
-            const SizedBox(width: 12),
-            Expanded(child: Text(message)),
+            SizedBox(width: AppDesignSystem.spacing12),
+            Expanded(
+              child: Text(
+                message,
+                style: AppDesignSystem.subheadline.copyWith(color: Colors.white),
+              ),
+            ),
           ],
         ),
-        backgroundColor: Colors.red,
+        backgroundColor: AppDesignSystem.systemRed,
         behavior: SnackBarBehavior.floating,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(AppDesignSystem.cornerRadius12),
+        ),
         margin: EdgeInsets.only(
-          top: MediaQuery.of(context).padding.top + 72, // AppBar height + padding
-          left: 16,
-          right: 16,
+          top: MediaQuery.of(context).padding.top + 72,
+          left: AppDesignSystem.spacing16,
+          right: AppDesignSystem.spacing16,
           bottom: MediaQuery.of(context).size.height -
-                 (MediaQuery.of(context).padding.top + 72 + 80), // Deixa espaço para a mensagem
+                 (MediaQuery.of(context).padding.top + 72 + 80),
         ),
         duration: const Duration(seconds: 3),
       ),
@@ -639,18 +648,26 @@ class _ChatScreenState extends State<ChatScreen> with AutomaticKeepAliveClientMi
         content: Row(
           children: [
             const Icon(Icons.info_outline, color: Colors.white),
-            const SizedBox(width: 12),
-            Expanded(child: Text(message)),
+            SizedBox(width: AppDesignSystem.spacing12),
+            Expanded(
+              child: Text(
+                message,
+                style: AppDesignSystem.subheadline.copyWith(color: Colors.white),
+              ),
+            ),
           ],
         ),
-        backgroundColor: Colors.blue,
+        backgroundColor: AppDesignSystem.systemBlue,
         behavior: SnackBarBehavior.floating,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(AppDesignSystem.cornerRadius12),
+        ),
         margin: EdgeInsets.only(
-          top: MediaQuery.of(context).padding.top + 72, // AppBar height + padding
-          left: 16,
-          right: 16,
+          top: MediaQuery.of(context).padding.top + 72,
+          left: AppDesignSystem.spacing16,
+          right: AppDesignSystem.spacing16,
           bottom: MediaQuery.of(context).size.height -
-                 (MediaQuery.of(context).padding.top + 72 + 80), // Deixa espaço para a mensagem
+                 (MediaQuery.of(context).padding.top + 72 + 80),
         ),
         duration: const Duration(seconds: 3),
       ),
@@ -665,19 +682,27 @@ class _ChatScreenState extends State<ChatScreen> with AutomaticKeepAliveClientMi
       SnackBar(
         content: Row(
           children: [
-            const Icon(Icons.check_circle, color: Colors.white),
-            const SizedBox(width: 12),
-            Expanded(child: Text(message)),
+            const Icon(Icons.check_circle_outline, color: Colors.white),
+            SizedBox(width: AppDesignSystem.spacing12),
+            Expanded(
+              child: Text(
+                message,
+                style: AppDesignSystem.subheadline.copyWith(color: Colors.white),
+              ),
+            ),
           ],
         ),
-        backgroundColor: Colors.green,
+        backgroundColor: AppDesignSystem.systemGreen,
         behavior: SnackBarBehavior.floating,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(AppDesignSystem.cornerRadius12),
+        ),
         margin: EdgeInsets.only(
-          top: MediaQuery.of(context).padding.top + 72, // AppBar height + padding
-          left: 16,
-          right: 16,
+          top: MediaQuery.of(context).padding.top + 72,
+          left: AppDesignSystem.spacing16,
+          right: AppDesignSystem.spacing16,
           bottom: MediaQuery.of(context).size.height -
-                 (MediaQuery.of(context).padding.top + 72 + 80), // Deixa espaço para a mensagem
+                 (MediaQuery.of(context).padding.top + 72 + 80),
         ),
         duration: const Duration(seconds: 2),
       ),
@@ -796,24 +821,34 @@ class _ChatScreenState extends State<ChatScreen> with AutomaticKeepAliveClientMi
 
   /// Mostra opções de anexo (apenas imagens)
   void _handleAttachmentPressed() {
+    final themeProvider = Provider.of<ThemeProvider>(context, listen: false);
+    final isDark = themeProvider.isDarkMode;
+
     showModalBottomSheet<void>(
       context: context,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      backgroundColor: isDark
+          ? AppDesignSystem.darkSecondaryBackground
+          : AppDesignSystem.lightPrimaryBackground,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(
+          top: Radius.circular(AppDesignSystem.cornerRadius20),
+        ),
       ),
       builder: (BuildContext context) => SafeArea(
         child: Padding(
-          padding: const EdgeInsets.all(16.0),
+          padding: EdgeInsets.all(AppDesignSystem.spacing20),
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: <Widget>[
-              // Título
+              // Título/handle
               Container(
                 width: 40,
                 height: 4,
-                margin: const EdgeInsets.only(bottom: 20),
+                margin: EdgeInsets.only(bottom: AppDesignSystem.spacing20),
                 decoration: BoxDecoration(
-                  color: Colors.grey[300],
+                  color: isDark
+                      ? AppDesignSystem.darkSeparator
+                      : AppDesignSystem.lightSeparator,
                   borderRadius: BorderRadius.circular(2),
                 ),
               )
@@ -823,25 +858,34 @@ class _ChatScreenState extends State<ChatScreen> with AutomaticKeepAliveClientMi
               // Opção: Galeria
               ListTile(
                 leading: Container(
-                  padding: const EdgeInsets.all(8),
+                  padding: EdgeInsets.all(AppDesignSystem.spacing8),
                   decoration: BoxDecoration(
-                    color: Colors.blue[50],
-                    borderRadius: BorderRadius.circular(12),
-                    boxShadow: [
-                      BoxShadow(
-                        color: Colors.blue.withOpacity(0.2),
-                        blurRadius: 8,
-                        offset: const Offset(0, 2),
-                      ),
-                    ],
+                    color: AppDesignSystem.systemBlue.withOpacity(0.1),
+                    borderRadius: BorderRadius.circular(AppDesignSystem.cornerRadius12),
                   ),
-                  child: const Icon(Icons.photo_library, color: Colors.blue),
+                  child: Icon(
+                    Icons.photo_library_outlined,
+                    color: isDark
+                        ? AppDesignSystem.systemBlueDark
+                        : AppDesignSystem.systemBlue,
+                  ),
                 ),
-                title: const Text(
+                title: Text(
                   'Galeria',
-                  style: TextStyle(fontWeight: FontWeight.w600),
+                  style: AppDesignSystem.headline.copyWith(
+                    color: isDark
+                        ? AppDesignSystem.darkPrimaryLabel
+                        : AppDesignSystem.lightPrimaryLabel,
+                  ),
                 ),
-                subtitle: const Text('Escolher foto da galeria'),
+                subtitle: Text(
+                  'Escolher foto da galeria',
+                  style: AppDesignSystem.caption1.copyWith(
+                    color: isDark
+                        ? AppDesignSystem.darkSecondaryLabel
+                        : AppDesignSystem.lightSecondaryLabel,
+                  ),
+                ),
                 onTap: () {
                   Navigator.pop(context);
                   _handleImageSelection();
@@ -850,29 +894,36 @@ class _ChatScreenState extends State<ChatScreen> with AutomaticKeepAliveClientMi
                   .animate()
                   .fadeIn(delay: 100.ms, duration: 400.ms)
                   .slideX(begin: -0.2, end: 0, curve: Curves.easeOut),
-              const SizedBox(height: 8),
+              SizedBox(height: AppDesignSystem.spacing8),
               // Opção: Câmera
               ListTile(
                 leading: Container(
-                  padding: const EdgeInsets.all(8),
+                  padding: EdgeInsets.all(AppDesignSystem.spacing8),
                   decoration: BoxDecoration(
-                    color: Colors.green[50],
-                    borderRadius: BorderRadius.circular(12),
-                    boxShadow: [
-                      BoxShadow(
-                        color: Colors.green.withOpacity(0.2),
-                        blurRadius: 8,
-                        offset: const Offset(0, 2),
-                      ),
-                    ],
+                    color: AppDesignSystem.systemGreen.withOpacity(0.1),
+                    borderRadius: BorderRadius.circular(AppDesignSystem.cornerRadius12),
                   ),
-                  child: const Icon(Icons.camera_alt, color: Colors.green),
+                  child: Icon(
+                    Icons.camera_alt_outlined,
+                    color: AppDesignSystem.systemGreen,
+                  ),
                 ),
-                title: const Text(
+                title: Text(
                   'Câmera',
-                  style: TextStyle(fontWeight: FontWeight.w600),
+                  style: AppDesignSystem.headline.copyWith(
+                    color: isDark
+                        ? AppDesignSystem.darkPrimaryLabel
+                        : AppDesignSystem.lightPrimaryLabel,
+                  ),
                 ),
-                subtitle: const Text('Tirar uma foto'),
+                subtitle: Text(
+                  'Tirar uma foto',
+                  style: AppDesignSystem.caption1.copyWith(
+                    color: isDark
+                        ? AppDesignSystem.darkSecondaryLabel
+                        : AppDesignSystem.lightSecondaryLabel,
+                  ),
+                ),
                 onTap: () {
                   Navigator.pop(context);
                   _handleCameraCapture();
@@ -898,78 +949,41 @@ class _ChatScreenState extends State<ChatScreen> with AutomaticKeepAliveClientMi
 
     return Scaffold(
       resizeToAvoidBottomInset: true,
+      backgroundColor: isDark
+          ? AppDesignSystem.darkPrimaryBackground
+          : AppDesignSystem.lightPrimaryBackground,
       drawer: const AssistantsDrawer(),
-      appBar: AppBar(
+      appBar: AppDesignSystem.appBar(
+        title: currentAssistant?.name ?? 'Meu Bot',
+        isDark: isDark,
         leading: Builder(
           builder: (context) => IconButton(
-            icon: const Icon(Icons.menu),
+            icon: Icon(
+              Icons.menu,
+              color: isDark
+                  ? AppDesignSystem.darkPrimaryLabel
+                  : AppDesignSystem.lightPrimaryLabel,
+            ),
             onPressed: () {
               Scaffold.of(context).openDrawer();
             },
             tooltip: 'Menu',
           ),
         ),
-        title: currentAssistant != null
-            ? Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Container(
-                    decoration: BoxDecoration(
-                      shape: BoxShape.circle,
-                      boxShadow: [
-                        BoxShadow(
-                          color: currentAssistant.primaryColor.withOpacity(0.3),
-                          blurRadius: 8,
-                          spreadRadius: 1,
-                        ),
-                      ],
-                    ),
-                    child: CircleAvatar(
-                      radius: 18,
-                      backgroundColor: currentAssistant.primaryColor,
-                      backgroundImage: currentAssistant.avatarUrl != null
-                          ? NetworkImage(currentAssistant.effectiveAvatarUrl)
-                          : null,
-                      child: currentAssistant.avatarUrl == null
-                          ? Text(
-                              currentAssistant.name[0].toUpperCase(),
-                              style: const TextStyle(
-                                color: Colors.white,
-                                fontSize: 16,
-                                fontWeight: FontWeight.bold,
-                              ),
-                            )
-                          : null,
-                    ),
-                  )
-                      .animate()
-                      .fadeIn(duration: 400.ms)
-                      .scale(begin: const Offset(0.8, 0.8), curve: Curves.easeOut),
-                  const SizedBox(width: 12),
-                  Flexible(
-                    child: Text(
-                      currentAssistant.name,
-                      overflow: TextOverflow.ellipsis,
-                    )
-                        .animate()
-                        .fadeIn(delay: 100.ms, duration: 400.ms)
-                        .slideX(begin: -0.2, end: 0),
-                  ),
-                ],
-              )
-            : const Text('Meu Bot'),
         actions: [
           // Indicador de loading
           if (_isLoading)
-            const Padding(
-              padding: EdgeInsets.symmetric(horizontal: 16.0),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16.0),
               child: Center(
                 child: SizedBox(
                   width: 20,
                   height: 20,
                   child: CircularProgressIndicator(
                     strokeWidth: 2,
-                    color: Colors.white,
+                    color: isDark
+                        ? AppDesignSystem.systemBlueDark
+                        : AppDesignSystem.systemBlue,
                   ),
                 ),
               ),
@@ -977,7 +991,12 @@ class _ChatScreenState extends State<ChatScreen> with AutomaticKeepAliveClientMi
           // Botão de configurações do assistente
           if (currentAssistant != null)
             IconButton(
-              icon: const Icon(Icons.settings),
+              icon: Icon(
+                Icons.settings_outlined,
+                color: isDark
+                    ? AppDesignSystem.darkPrimaryLabel
+                    : AppDesignSystem.lightPrimaryLabel,
+              ),
               tooltip: 'Configurar Assistente',
               onPressed: () {
                 Navigator.push(
@@ -1043,39 +1062,37 @@ class _ChatScreenState extends State<ChatScreen> with AutomaticKeepAliveClientMi
                             // Cor das mensagens do usuário - usa cor do assistente
                             primaryColor: currentAssistant?.primaryColor ??
                                 (isDark
-                                    ? AppThemes.darkUserBubble
-                                    : AppThemes.lightUserBubble),
+                                    ? AppDesignSystem.systemBlueDark
+                                    : AppDesignSystem.systemBlue),
                             // Cor das mensagens do bot - usa cor secundária do assistente
                             secondaryColor: currentAssistant?.secondaryColor ??
                                 (isDark
-                                    ? AppThemes.darkBotBubble
-                                    : AppThemes.lightBotBubble),
+                                    ? AppDesignSystem.darkSecondaryBackground
+                                    : AppDesignSystem.lightSecondaryBackground),
                             // Cor de fundo
                             backgroundColor: isDark
-                                ? AppThemes.darkBackground
-                                : AppThemes.lightBackground,
+                                ? AppDesignSystem.darkPrimaryBackground
+                                : AppDesignSystem.lightPrimaryBackground,
                             // Cor do texto de entrada
                             inputBackgroundColor: isDark
-                                ? AppThemes.darkInputBackground
-                                : AppThemes.lightInputBackground,
+                                ? AppDesignSystem.darkFillTertiary
+                                : AppDesignSystem.lightFillTertiary,
                             inputTextColor: isDark
-                                ? AppThemes.darkInputText
-                                : AppThemes.lightInputText,
-                            // Bordas arredondadas
-                            messageBorderRadius: 20,
+                                ? AppDesignSystem.darkPrimaryLabel
+                                : AppDesignSystem.lightPrimaryLabel,
+                            // Bordas arredondadas iOS
+                            messageBorderRadius: 18,
                             // Padding das mensagens
-                            messageInsetsVertical: 12,
-                            messageInsetsHorizontal: 16,
+                            messageInsetsVertical: 10,
+                            messageInsetsHorizontal: 14,
                             // Cor do texto nas mensagens
-                            sentMessageBodyTextStyle: TextStyle(
-                              color: AppThemes.lightUserText,
-                              fontSize: 16,
+                            sentMessageBodyTextStyle: AppDesignSystem.body.copyWith(
+                              color: Colors.white,
                             ),
-                            receivedMessageBodyTextStyle: TextStyle(
+                            receivedMessageBodyTextStyle: AppDesignSystem.body.copyWith(
                               color: isDark
-                                  ? AppThemes.darkBotText
-                                  : AppThemes.lightBotText,
-                              fontSize: 16,
+                                  ? AppDesignSystem.darkPrimaryLabel
+                                  : AppDesignSystem.lightPrimaryLabel,
                             ),
                           ),
                           // Textos em português
@@ -1094,24 +1111,24 @@ class _ChatScreenState extends State<ChatScreen> with AutomaticKeepAliveClientMi
                             // Verifica se é uma mensagem de loading
                             if (message.metadata?['isTyping'] == true) {
                               return Container(
-                                padding: const EdgeInsets.symmetric(
-                                  horizontal: 16,
-                                  vertical: 12,
+                                padding: EdgeInsets.symmetric(
+                                  horizontal: AppDesignSystem.spacing16,
+                                  vertical: AppDesignSystem.spacing12,
                                 ),
-                                margin: const EdgeInsets.symmetric(
-                                  horizontal: 8,
+                                margin: EdgeInsets.symmetric(
+                                  horizontal: AppDesignSystem.spacing8,
                                   vertical: 4,
                                 ),
                                 decoration: BoxDecoration(
                                   color: isDark
-                                      ? AppThemes.darkBotBubble
-                                      : AppThemes.lightBotBubble,
-                                  borderRadius: BorderRadius.circular(20),
+                                      ? AppDesignSystem.darkSecondaryBackground
+                                      : AppDesignSystem.lightSecondaryBackground,
+                                  borderRadius: BorderRadius.circular(18),
                                 ),
                                 child: BotTypingIndicator(
                                   dotColor: isDark
-                                      ? AppThemes.darkBotText
-                                      : AppThemes.lightBotText,
+                                      ? AppDesignSystem.darkSecondaryLabel
+                                      : AppDesignSystem.lightSecondaryLabel,
                                 ),
                               );
                             }
@@ -1186,20 +1203,25 @@ class _ChatScreenState extends State<ChatScreen> with AutomaticKeepAliveClientMi
     );
   }
 
-  /// Constrói o input customizado estilo WhatsApp
+  /// Constrói o input customizado estilo iOS
   Widget _buildCustomInput(bool isDark) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
+      padding: EdgeInsets.symmetric(
+        horizontal: AppDesignSystem.spacing8,
+        vertical: AppDesignSystem.spacing8,
+      ),
       decoration: BoxDecoration(
-        color: isDark ? AppThemes.darkSurface : Colors.white,
-        borderRadius: BorderRadius.circular(16), // Arredonda todos os lados
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.05),
-            blurRadius: 4,
-            offset: const Offset(0, -2),
+        color: isDark
+            ? AppDesignSystem.darkPrimaryBackground
+            : AppDesignSystem.lightPrimaryBackground,
+        border: Border(
+          top: BorderSide(
+            color: isDark
+                ? AppDesignSystem.darkSeparator
+                : AppDesignSystem.lightSeparator,
+            width: 0.5,
           ),
-        ],
+        ),
       ),
       child: SafeArea(
         child: Row(
@@ -1209,18 +1231,12 @@ class _ChatScreenState extends State<ChatScreen> with AutomaticKeepAliveClientMi
               child: Container(
                 decoration: BoxDecoration(
                   color: isDark
-                      ? AppThemes.darkInputBackground
-                      : AppThemes.lightInputBackground,
-                  borderRadius: BorderRadius.circular(24),
-                  border: Border.all(
-                    color: isDark
-                        ? Colors.white.withOpacity(0.1)
-                        : Colors.black.withOpacity(0.1),
-                    width: 1,
-                  ),
+                      ? AppDesignSystem.darkFillTertiary
+                      : AppDesignSystem.lightFillTertiary,
+                  borderRadius: BorderRadius.circular(20),
                 ),
                 child: ClipRRect(
-                  borderRadius: BorderRadius.circular(24),
+                  borderRadius: BorderRadius.circular(20),
                   child: Row(
                     children: [
                       // Botão de anexo (imagem)
@@ -1228,8 +1244,9 @@ class _ChatScreenState extends State<ChatScreen> with AutomaticKeepAliveClientMi
                         icon: Icon(
                           Icons.add_photo_alternate_outlined,
                           color: isDark
-                              ? AppThemes.darkInputText.withOpacity(0.7)
-                              : AppThemes.lightInputText.withOpacity(0.7),
+                              ? AppDesignSystem.darkSecondaryLabel
+                              : AppDesignSystem.lightSecondaryLabel,
+                          size: 22,
                         ),
                         onPressed: _handleAttachmentPressed,
                         tooltip: 'Enviar imagem',
@@ -1238,23 +1255,22 @@ class _ChatScreenState extends State<ChatScreen> with AutomaticKeepAliveClientMi
                       Expanded(
                         child: TextField(
                           controller: _textController,
-                          style: TextStyle(
+                          style: AppDesignSystem.body.copyWith(
                             color: isDark
-                                ? AppThemes.darkInputText
-                                : AppThemes.lightInputText,
-                            fontSize: 16,
+                                ? AppDesignSystem.darkPrimaryLabel
+                                : AppDesignSystem.lightPrimaryLabel,
                           ),
                           decoration: InputDecoration(
-                            hintText: 'Digite uma mensagem',
-                            hintStyle: TextStyle(
+                            hintText: 'Mensagem',
+                            hintStyle: AppDesignSystem.body.copyWith(
                               color: isDark
-                                  ? AppThemes.darkInputText.withOpacity(0.5)
-                                  : AppThemes.lightInputText.withOpacity(0.5),
+                                  ? AppDesignSystem.darkTertiaryLabel
+                                  : AppDesignSystem.lightTertiaryLabel,
                             ),
                             border: InputBorder.none,
-                            contentPadding: const EdgeInsets.symmetric(
+                            contentPadding: EdgeInsets.symmetric(
                               horizontal: 4,
-                              vertical: 10,
+                              vertical: AppDesignSystem.spacing8,
                             ),
                           ),
                           maxLines: 5,
@@ -1262,12 +1278,13 @@ class _ChatScreenState extends State<ChatScreen> with AutomaticKeepAliveClientMi
                           textCapitalization: TextCapitalization.sentences,
                         ),
                       ),
+                      SizedBox(width: AppDesignSystem.spacing4),
                     ],
                   ),
                 ),
               ),
             ),
-            const SizedBox(width: 8),
+            SizedBox(width: AppDesignSystem.spacing8),
             // Botão de ação (microfone ou enviar)
             _buildActionButton(isDark),
           ],
@@ -1280,7 +1297,8 @@ class _ChatScreenState extends State<ChatScreen> with AutomaticKeepAliveClientMi
   Widget _buildActionButton(bool isDark) {
     final assistantProvider = Provider.of<AssistantProvider>(context);
     final currentAssistant = assistantProvider.currentAssistant;
-    final buttonColor = currentAssistant?.primaryColor ?? AppThemes.lightPrimary;
+    final buttonColor = currentAssistant?.primaryColor ??
+        (isDark ? AppDesignSystem.systemBlueDark : AppDesignSystem.systemBlue);
 
     // Se há texto, mostra botão de enviar
     if (_currentText.trim().isNotEmpty) {
@@ -1298,13 +1316,13 @@ class _ChatScreenState extends State<ChatScreen> with AutomaticKeepAliveClientMi
             }
           },
           child: Container(
-            width: 48,
-            height: 48,
+            width: 36,
+            height: 36,
             alignment: Alignment.center,
             child: const Icon(
-              Icons.send,
+              Icons.arrow_upward,
               color: Colors.white,
-              size: 22,
+              size: 20,
             ),
           ),
         ),
@@ -1313,20 +1331,20 @@ class _ChatScreenState extends State<ChatScreen> with AutomaticKeepAliveClientMi
 
     // Se não há texto, mostra botão de microfone
     return Material(
-      color: _isRecording ? Colors.red : buttonColor,
+      color: _isRecording ? AppDesignSystem.systemRed : buttonColor,
       borderRadius: BorderRadius.circular(24),
       child: InkWell(
         borderRadius: BorderRadius.circular(24),
         onTap: _handleMicrophonePressed,
         onLongPress: _handleMicrophonePressed,
         child: Container(
-          width: 48,
-          height: 48,
+          width: 36,
+          height: 36,
           alignment: Alignment.center,
           child: Icon(
-            _isRecording ? Icons.stop : Icons.mic,
+            _isRecording ? Icons.stop_circle : Icons.mic_none,
             color: Colors.white,
-            size: 22,
+            size: 20,
           ),
         ),
       ),

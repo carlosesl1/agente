@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:shimmer/shimmer.dart';
+import 'package:provider/provider.dart';
+import '../theme/design_system.dart';
+import '../theme/theme_provider.dart';
 
 /// Skeleton loading widgets
 ///
@@ -10,28 +13,46 @@ class SkeletonLoading {
     required double width,
     required double height,
     double borderRadius = 8.0,
+    bool? isDark,
   }) {
-    return Container(
-      width: width,
-      height: height,
-      decoration: BoxDecoration(
-        color: Colors.grey[300],
-        borderRadius: BorderRadius.circular(borderRadius),
-      ),
+    return Builder(
+      builder: (context) {
+        final effectiveIsDark = isDark ??
+            Provider.of<ThemeProvider>(context, listen: false).isDarkMode;
+        return Container(
+          width: width,
+          height: height,
+          decoration: BoxDecoration(
+            color: effectiveIsDark
+                ? AppDesignSystem.darkFillTertiary
+                : AppDesignSystem.lightFillTertiary,
+            borderRadius: BorderRadius.circular(borderRadius),
+          ),
+        );
+      },
     );
   }
 
   /// Skeleton circular (para avatares)
   static Widget circle({
     required double size,
+    bool? isDark,
   }) {
-    return Container(
-      width: size,
-      height: size,
-      decoration: BoxDecoration(
-        color: Colors.grey[300],
-        shape: BoxShape.circle,
-      ),
+    return Builder(
+      builder: (context) {
+        final effectiveIsDark = isDark ??
+            Provider.of<ThemeProvider>(context, listen: false).isDarkMode;
+        return Container(
+          width: size,
+          height: size,
+          decoration: BoxDecoration(
+            color: effectiveIsDark
+                ? AppDesignSystem.darkFillTertiary
+                : AppDesignSystem.lightFillTertiary,
+            shape: BoxShape.circle,
+          ),
+        );
+      },
     );
   }
 
@@ -39,11 +60,13 @@ class SkeletonLoading {
   static Widget text({
     double width = double.infinity,
     double height = 16.0,
+    bool? isDark,
   }) {
     return container(
       width: width,
       height: height,
       borderRadius: 4.0,
+      isDark: isDark,
     );
   }
 }
@@ -51,17 +74,26 @@ class SkeletonLoading {
 /// Widget que adiciona efeito shimmer (brilho animado)
 class ShimmerWrapper extends StatelessWidget {
   final Widget child;
+  final bool? isDark;
 
   const ShimmerWrapper({
     super.key,
     required this.child,
+    this.isDark,
   });
 
   @override
   Widget build(BuildContext context) {
+    final themeProvider = Provider.of<ThemeProvider>(context, listen: false);
+    final effectiveIsDark = isDark ?? themeProvider.isDarkMode;
+
     return Shimmer.fromColors(
-      baseColor: Colors.grey[300]!,
-      highlightColor: Colors.grey[100]!,
+      baseColor: effectiveIsDark
+          ? AppDesignSystem.darkFillTertiary
+          : AppDesignSystem.lightFillTertiary,
+      highlightColor: effectiveIsDark
+          ? AppDesignSystem.darkFillSecondary
+          : AppDesignSystem.lightFillSecondary,
       period: const Duration(milliseconds: 1500),
       child: child,
     );
@@ -74,9 +106,16 @@ class ChatMessageSkeletonUser extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final themeProvider = Provider.of<ThemeProvider>(context);
+    final isDark = themeProvider.isDarkMode;
+
     return ShimmerWrapper(
+      isDark: isDark,
       child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
+        padding: EdgeInsets.symmetric(
+          horizontal: AppDesignSystem.spacing16,
+          vertical: AppDesignSystem.spacing8,
+        ),
         child: Row(
           mainAxisAlignment: MainAxisAlignment.end,
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -93,20 +132,22 @@ class ChatMessageSkeletonUser extends StatelessWidget {
                   SkeletonLoading.container(
                     width: double.infinity,
                     height: 60,
-                    borderRadius: 20,
+                    borderRadius: 18,
+                    isDark: isDark,
                   ),
-                  const SizedBox(height: 4),
+                  SizedBox(height: AppDesignSystem.spacing4),
                   // Timestamp
                   SkeletonLoading.text(
                     width: 60,
                     height: 12,
+                    isDark: isDark,
                   ),
                 ],
               ),
             ),
-            const SizedBox(width: 8),
+            SizedBox(width: AppDesignSystem.spacing8),
             // Avatar
-            SkeletonLoading.circle(size: 32),
+            SkeletonLoading.circle(size: 32, isDark: isDark),
           ],
         ),
       ),
@@ -120,15 +161,22 @@ class ChatMessageSkeletonBot extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final themeProvider = Provider.of<ThemeProvider>(context);
+    final isDark = themeProvider.isDarkMode;
+
     return ShimmerWrapper(
+      isDark: isDark,
       child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
+        padding: EdgeInsets.symmetric(
+          horizontal: AppDesignSystem.spacing16,
+          vertical: AppDesignSystem.spacing8,
+        ),
         child: Row(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             // Avatar
-            SkeletonLoading.circle(size: 32),
-            const SizedBox(width: 8),
+            SkeletonLoading.circle(size: 32, isDark: isDark),
+            SizedBox(width: AppDesignSystem.spacing8),
             // Mensagem (balão cinza)
             Expanded(
               flex: 3,
@@ -139,13 +187,15 @@ class ChatMessageSkeletonBot extends StatelessWidget {
                   SkeletonLoading.container(
                     width: double.infinity,
                     height: 60,
-                    borderRadius: 20,
+                    borderRadius: 18,
+                    isDark: isDark,
                   ),
-                  const SizedBox(height: 4),
+                  SizedBox(height: AppDesignSystem.spacing4),
                   // Timestamp
                   SkeletonLoading.text(
                     width: 60,
                     height: 12,
+                    isDark: isDark,
                   ),
                 ],
               ),
