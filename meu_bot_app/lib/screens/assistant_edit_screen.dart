@@ -363,7 +363,6 @@ class _AssistantEditScreenState extends State<AssistantEditScreen> {
                 // Card Glassmorphism com formulário
                 GlassmorphicContainer(
                   width: double.infinity,
-                  height: null,
                   borderRadius: 24,
                   blur: 20,
                   alignment: Alignment.center,
@@ -528,7 +527,9 @@ class _AssistantEditScreenState extends State<AssistantEditScreen> {
                     .animate()
                     .fadeIn(delay: 700.ms, duration: 600.ms)
                     .slideY(begin: 0.3, end: 0),
-          ],
+              ],
+            ),
+          ),
         ),
       ),
     );
