@@ -147,6 +147,7 @@ class _LoginScreenState extends State<LoginScreen> {
                   // Card Glassmorphism
                   GlassmorphicContainer(
                     width: double.infinity,
+                    height: 550,
                     borderRadius: 24,
                     blur: 20,
                     alignment: Alignment.center,

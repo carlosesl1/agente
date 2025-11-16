@@ -363,6 +363,7 @@ class _AssistantEditScreenState extends State<AssistantEditScreen> {
                 // Card Glassmorphism com formulário
                 GlassmorphicContainer(
                   width: double.infinity,
+                  height: 650,
                   borderRadius: 24,
                   blur: 20,
                   alignment: Alignment.center,
