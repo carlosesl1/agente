@@ -19,8 +19,8 @@ class AssistantsDrawer extends StatelessWidget {
 
     return Drawer(
       backgroundColor: isDark
-          ? AppDesignSystem.darkBackground
-          : AppDesignSystem.lightBackground,
+          ? AppDesignSystem.darkPrimaryBackground
+          : AppDesignSystem.lightPrimaryBackground,
       child: SafeArea(
         child: Column(
           children: [
@@ -36,17 +36,17 @@ class AssistantsDrawer extends StatelessWidget {
 
             AppDesignSystem.divider(isDark),
 
-            const SizedBox(height: AppDesignSystem.spacingS),
+            const SizedBox(height: AppDesignSystem.spacing8),
 
             // Botão Novo Assistente
             _buildNewAssistantButton(context, isDark),
 
-            const SizedBox(height: AppDesignSystem.spacingS),
+            const SizedBox(height: AppDesignSystem.spacing8),
 
             // Botão Configurações
             _buildSettingsButton(context, isDark),
 
-            const SizedBox(height: AppDesignSystem.spacingM),
+            const SizedBox(height: AppDesignSystem.spacing16),
           ],
         ),
       ),
@@ -55,27 +55,27 @@ class AssistantsDrawer extends StatelessWidget {
 
   Widget _buildHeader(BuildContext context, bool isDark) {
     return Padding(
-      padding: const EdgeInsets.all(AppDesignSystem.spacingM),
+      padding: const EdgeInsets.all(AppDesignSystem.spacing16),
       child: Row(
         children: [
           Icon(
             Icons.chat_bubble_outline,
             size: 28,
             color: isDark
-                ? AppDesignSystem.primaryBlueDark
-                : AppDesignSystem.primaryBlue,
+                ? AppDesignSystem.systemBlueDark
+                : AppDesignSystem.systemBlue,
           ).animate().fadeIn(duration: 400.ms).scale(
                 begin: const Offset(0.8, 0.8),
                 curve: Curves.easeOut,
               ),
-          const SizedBox(width: AppDesignSystem.spacingM),
+          const SizedBox(width: AppDesignSystem.spacing16),
           Expanded(
             child: Text(
               'Meus Assistentes',
               style: AppDesignSystem.title3.copyWith(
                 color: isDark
-                    ? AppDesignSystem.darkPrimaryText
-                    : AppDesignSystem.lightPrimaryText,
+                    ? AppDesignSystem.darkPrimaryLabel
+                    : AppDesignSystem.lightPrimaryLabel,
               ),
             )
                 .animate()
@@ -98,8 +98,8 @@ class AssistantsDrawer extends StatelessWidget {
             child: CircularProgressIndicator(
               valueColor: AlwaysStoppedAnimation<Color>(
                 isDark
-                    ? AppDesignSystem.primaryBlueDark
-                    : AppDesignSystem.primaryBlue,
+                    ? AppDesignSystem.systemBlueDark
+                    : AppDesignSystem.systemBlue,
               ),
             ),
           );
@@ -108,7 +108,7 @@ class AssistantsDrawer extends StatelessWidget {
         if (provider.assistants.isEmpty) {
           return Center(
             child: Padding(
-              padding: const EdgeInsets.all(AppDesignSystem.spacingXL),
+              padding: const EdgeInsets.all(AppDesignSystem.spacing32),
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
@@ -116,20 +116,20 @@ class AssistantsDrawer extends StatelessWidget {
                     Icons.inbox_outlined,
                     size: 64,
                     color: isDark
-                        ? AppDesignSystem.darkSecondaryText.withOpacity(0.5)
-                        : AppDesignSystem.lightSecondaryText.withOpacity(0.5),
+                        ? AppDesignSystem.darkSecondaryLabel.withOpacity(0.5)
+                        : AppDesignSystem.lightSecondaryLabel.withOpacity(0.5),
                   )
                       .animate()
                       .fadeIn(duration: 400.ms)
                       .scale(curve: Curves.easeOut),
-                  const SizedBox(height: AppDesignSystem.spacingM),
+                  const SizedBox(height: AppDesignSystem.spacing16),
                   Text(
                     'Nenhum assistente criado.\nToque em "+" para criar um.',
                     textAlign: TextAlign.center,
                     style: AppDesignSystem.subhead.copyWith(
                       color: isDark
-                          ? AppDesignSystem.darkSecondaryText
-                          : AppDesignSystem.lightSecondaryText,
+                          ? AppDesignSystem.darkSecondaryLabel
+                          : AppDesignSystem.lightSecondaryLabel,
                     ),
                   )
                       .animate()
@@ -142,7 +142,7 @@ class AssistantsDrawer extends StatelessWidget {
         }
 
         return ListView.builder(
-          padding: const EdgeInsets.all(AppDesignSystem.spacingS),
+          padding: const EdgeInsets.all(AppDesignSystem.spacing8),
           itemCount: provider.assistants.length,
           itemBuilder: (context, index) {
             final assistant = provider.assistants[index];
@@ -172,8 +172,8 @@ class AssistantsDrawer extends StatelessWidget {
   ) {
     return Container(
       margin: const EdgeInsets.symmetric(
-        horizontal: AppDesignSystem.spacingS,
-        vertical: AppDesignSystem.spacingXS,
+        horizontal: AppDesignSystem.spacing8,
+        vertical: AppDesignSystem.spacing4,
       ),
       decoration: BoxDecoration(
         color: isSelected
@@ -181,7 +181,7 @@ class AssistantsDrawer extends StatelessWidget {
                 ? AppDesignSystem.darkSecondaryBackground
                 : AppDesignSystem.lightSecondaryBackground)
             : Colors.transparent,
-        borderRadius: BorderRadius.circular(AppDesignSystem.radiusM),
+        borderRadius: BorderRadius.circular(AppDesignSystem.cornerRadius12),
         border: isSelected
             ? Border.all(
                 color: assistant.primaryColor.withOpacity(0.3),
@@ -192,13 +192,13 @@ class AssistantsDrawer extends StatelessWidget {
       child: Material(
         color: Colors.transparent,
         child: InkWell(
-          borderRadius: BorderRadius.circular(AppDesignSystem.radiusM),
+          borderRadius: BorderRadius.circular(AppDesignSystem.cornerRadius12),
           onTap: () {
             provider.selectAssistant(assistant);
             Navigator.pop(context);
           },
           child: Padding(
-            padding: const EdgeInsets.all(AppDesignSystem.spacingM),
+            padding: const EdgeInsets.all(AppDesignSystem.spacing16),
             child: Row(
               children: [
                 // Avatar
@@ -222,7 +222,7 @@ class AssistantsDrawer extends StatelessWidget {
                       ),
                   ],
                 ),
-                const SizedBox(width: AppDesignSystem.spacingM),
+                const SizedBox(width: AppDesignSystem.spacing16),
                 // Nome e subtítulo
                 Expanded(
                   child: Column(
@@ -233,8 +233,8 @@ class AssistantsDrawer extends StatelessWidget {
                         style: AppDesignSystem.headline.copyWith(
                           fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500,
                           color: isDark
-                              ? AppDesignSystem.darkPrimaryText
-                              : AppDesignSystem.lightPrimaryText,
+                              ? AppDesignSystem.darkPrimaryLabel
+                              : AppDesignSystem.lightPrimaryLabel,
                         ),
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
@@ -244,7 +244,7 @@ class AssistantsDrawer extends StatelessWidget {
                         Text(
                           '${assistant.unreadCount} ${assistant.unreadCount == 1 ? 'nova' : 'novas'}',
                           style: AppDesignSystem.caption1.copyWith(
-                            color: AppDesignSystem.accentRed,
+                            color: AppDesignSystem.systemRed,
                             fontWeight: FontWeight.w500,
                           ),
                         ),
@@ -275,7 +275,7 @@ class AssistantsDrawer extends StatelessWidget {
 
   Widget _buildNewAssistantButton(BuildContext context, bool isDark) {
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: AppDesignSystem.spacingM),
+      padding: const EdgeInsets.symmetric(horizontal: AppDesignSystem.spacing16),
       child: SizedBox(
         width: double.infinity,
         child: AppDesignSystem.primaryButton(
@@ -298,7 +298,7 @@ class AssistantsDrawer extends StatelessWidget {
 
   Widget _buildSettingsButton(BuildContext context, bool isDark) {
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: AppDesignSystem.spacingM),
+      padding: const EdgeInsets.symmetric(horizontal: AppDesignSystem.spacing16),
       child: SizedBox(
         width: double.infinity,
         child: AppDesignSystem.secondaryButton(

@@ -102,12 +102,12 @@ class _LoginScreenState extends State<LoginScreen> {
 
     return Scaffold(
       backgroundColor: isDark
-          ? AppDesignSystem.darkBackground
-          : AppDesignSystem.lightBackground,
+          ? AppDesignSystem.darkPrimaryBackground
+          : AppDesignSystem.lightPrimaryBackground,
       body: SafeArea(
         child: Center(
           child: SingleChildScrollView(
-            padding: const EdgeInsets.all(AppDesignSystem.spacingL),
+            padding: const EdgeInsets.all(AppDesignSystem.spacing20),
             child: ConstrainedBox(
               constraints: const BoxConstraints(maxWidth: 400),
               child: Form(
@@ -125,15 +125,15 @@ class _LoginScreenState extends State<LoginScreen> {
                           curve: Curves.easeOut,
                         ),
 
-                    const SizedBox(height: AppDesignSystem.spacingXL),
+                    const SizedBox(height: AppDesignSystem.spacing32),
 
                     // Título
                     Text(
                       'Bem-vindo de volta',
                       style: AppDesignSystem.largeTitle.copyWith(
                         color: isDark
-                            ? AppDesignSystem.darkPrimaryText
-                            : AppDesignSystem.lightPrimaryText,
+                            ? AppDesignSystem.darkPrimaryLabel
+                            : AppDesignSystem.lightPrimaryLabel,
                       ),
                       textAlign: TextAlign.center,
                     )
@@ -141,14 +141,14 @@ class _LoginScreenState extends State<LoginScreen> {
                         .fadeIn(delay: 100.ms, duration: 400.ms)
                         .slideY(begin: -0.1, end: 0),
 
-                    const SizedBox(height: AppDesignSystem.spacingS),
+                    const SizedBox(height: AppDesignSystem.spacing8),
 
                     Text(
                       'Entre para continuar',
                       style: AppDesignSystem.body.copyWith(
                         color: isDark
-                            ? AppDesignSystem.darkSecondaryText
-                            : AppDesignSystem.lightSecondaryText,
+                            ? AppDesignSystem.darkSecondaryLabel
+                            : AppDesignSystem.lightSecondaryLabel,
                       ),
                       textAlign: TextAlign.center,
                     )
@@ -156,35 +156,35 @@ class _LoginScreenState extends State<LoginScreen> {
                         .fadeIn(delay: 200.ms, duration: 400.ms)
                         .slideY(begin: -0.1, end: 0),
 
-                    const SizedBox(height: AppDesignSystem.spacingXL),
+                    const SizedBox(height: AppDesignSystem.spacing32),
 
                     // Mensagem de erro
                     if (_errorMessage != null)
                       Container(
-                        padding: const EdgeInsets.all(AppDesignSystem.spacingM),
+                        padding: const EdgeInsets.all(AppDesignSystem.spacing16),
                         margin: const EdgeInsets.only(
-                            bottom: AppDesignSystem.spacingM),
+                            bottom: AppDesignSystem.spacing16),
                         decoration: BoxDecoration(
-                          color: AppDesignSystem.accentRed.withOpacity(0.1),
+                          color: AppDesignSystem.systemRed.withOpacity(0.1),
                           borderRadius:
-                              BorderRadius.circular(AppDesignSystem.radiusM),
+                              BorderRadius.circular(AppDesignSystem.cornerRadius12),
                           border: Border.all(
-                            color: AppDesignSystem.accentRed.withOpacity(0.3),
+                            color: AppDesignSystem.systemRed.withOpacity(0.3),
                           ),
                         ),
                         child: Row(
                           children: [
                             Icon(
                               Icons.error_outline,
-                              color: AppDesignSystem.accentRed,
+                              color: AppDesignSystem.systemRed,
                               size: 20,
                             ),
-                            const SizedBox(width: AppDesignSystem.spacingM),
+                            const SizedBox(width: AppDesignSystem.spacing16),
                             Expanded(
                               child: Text(
                                 _errorMessage!,
                                 style: AppDesignSystem.subhead.copyWith(
-                                  color: AppDesignSystem.accentRed,
+                                  color: AppDesignSystem.systemRed,
                                 ),
                               ),
                             ),
@@ -203,8 +203,8 @@ class _LoginScreenState extends State<LoginScreen> {
                       validator: _validateEmail,
                       style: AppDesignSystem.body.copyWith(
                         color: isDark
-                            ? AppDesignSystem.darkPrimaryText
-                            : AppDesignSystem.lightPrimaryText,
+                            ? AppDesignSystem.darkPrimaryLabel
+                            : AppDesignSystem.lightPrimaryLabel,
                       ),
                       decoration: AppDesignSystem.inputDecoration(
                         label: 'Email',
@@ -214,7 +214,7 @@ class _LoginScreenState extends State<LoginScreen> {
                       ),
                     ).animate().fadeIn(delay: 300.ms, duration: 400.ms),
 
-                    const SizedBox(height: AppDesignSystem.spacingM),
+                    const SizedBox(height: AppDesignSystem.spacing16),
 
                     // Campo Senha
                     TextFormField(
@@ -224,8 +224,8 @@ class _LoginScreenState extends State<LoginScreen> {
                       validator: _validatePassword,
                       style: AppDesignSystem.body.copyWith(
                         color: isDark
-                            ? AppDesignSystem.darkPrimaryText
-                            : AppDesignSystem.lightPrimaryText,
+                            ? AppDesignSystem.darkPrimaryLabel
+                            : AppDesignSystem.lightPrimaryLabel,
                       ),
                       decoration: AppDesignSystem.inputDecoration(
                         label: 'Senha',
@@ -239,8 +239,8 @@ class _LoginScreenState extends State<LoginScreen> {
                                 ? Icons.visibility_outlined
                                 : Icons.visibility_off_outlined,
                             color: isDark
-                                ? AppDesignSystem.darkSecondaryText
-                                : AppDesignSystem.lightSecondaryText,
+                                ? AppDesignSystem.darkSecondaryLabel
+                                : AppDesignSystem.lightSecondaryLabel,
                             size: 20,
                           ),
                           onPressed: () {
@@ -250,7 +250,7 @@ class _LoginScreenState extends State<LoginScreen> {
                       ),
                     ).animate().fadeIn(delay: 400.ms, duration: 400.ms),
 
-                    const SizedBox(height: AppDesignSystem.spacingL),
+                    const SizedBox(height: AppDesignSystem.spacing20),
 
                     // Botão Entrar
                     AppDesignSystem.primaryButton(
@@ -260,7 +260,7 @@ class _LoginScreenState extends State<LoginScreen> {
                       isLoading: _isLoading,
                     ).animate().fadeIn(delay: 500.ms, duration: 400.ms),
 
-                    const SizedBox(height: AppDesignSystem.spacingL),
+                    const SizedBox(height: AppDesignSystem.spacing20),
 
                     // Link para cadastro
                     Row(
@@ -270,23 +270,23 @@ class _LoginScreenState extends State<LoginScreen> {
                           'Não tem conta? ',
                           style: AppDesignSystem.subhead.copyWith(
                             color: isDark
-                                ? AppDesignSystem.darkSecondaryText
-                                : AppDesignSystem.lightSecondaryText,
+                                ? AppDesignSystem.darkSecondaryLabel
+                                : AppDesignSystem.lightSecondaryLabel,
                           ),
                         ),
                         TextButton(
                           onPressed: _isLoading ? null : _navigateToRegister,
                           style: TextButton.styleFrom(
                             padding: const EdgeInsets.symmetric(
-                              horizontal: AppDesignSystem.spacingS,
+                              horizontal: AppDesignSystem.spacing8,
                             ),
                           ),
                           child: Text(
                             'Cadastre-se',
                             style: AppDesignSystem.subhead.copyWith(
                               color: isDark
-                                  ? AppDesignSystem.primaryBlueDark
-                                  : AppDesignSystem.primaryBlue,
+                                  ? AppDesignSystem.systemBlueDark
+                                  : AppDesignSystem.systemBlue,
                               fontWeight: FontWeight.w600,
                             ),
                           ),
@@ -310,10 +310,10 @@ class _LoginScreenState extends State<LoginScreen> {
         height: 100,
         decoration: BoxDecoration(
           color: isDark
-              ? AppDesignSystem.primaryBlueDark
-              : AppDesignSystem.primaryBlue,
+              ? AppDesignSystem.systemBlueDark
+              : AppDesignSystem.systemBlue,
           shape: BoxShape.circle,
-          boxShadow: AppDesignSystem.shadowSoft(isDark),
+          boxShadow: AppDesignSystem.shadowLevel1(isDark),
         ),
         child: const Icon(
           Icons.chat_bubble_outline,

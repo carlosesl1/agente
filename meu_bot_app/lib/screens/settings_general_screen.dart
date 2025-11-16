@@ -174,7 +174,7 @@ class _SettingsGeneralScreenState extends State<SettingsGeneralScreen> {
       leading: Text(flag, style: const TextStyle(fontSize: 24)),
       title: Text(name),
       trailing: _selectedLanguage == code
-          ? Icon(Icons.check, color: AppDesignSystem.primaryBlue)
+          ? Icon(Icons.check, color: AppDesignSystem.systemBlue)
           : null,
       onTap: () {
         setState(() => _selectedLanguage = code);
@@ -201,7 +201,7 @@ class _SettingsGeneralScreenState extends State<SettingsGeneralScreen> {
           TextButton(
             onPressed: () => Navigator.pop(context, true),
             style: TextButton.styleFrom(
-              foregroundColor: AppDesignSystem.accentRed,
+              foregroundColor: AppDesignSystem.systemRed,
             ),
             child: const Text('Sair'),
           ),
@@ -241,8 +241,8 @@ class _SettingsGeneralScreenState extends State<SettingsGeneralScreen> {
 
     return Scaffold(
       backgroundColor: isDark
-          ? AppDesignSystem.darkBackground
-          : AppDesignSystem.lightBackground,
+          ? AppDesignSystem.darkPrimaryBackground
+          : AppDesignSystem.lightPrimaryBackground,
       appBar: AppDesignSystem.appBar(
         title: 'Configurações',
         isDark: isDark,
@@ -250,13 +250,13 @@ class _SettingsGeneralScreenState extends State<SettingsGeneralScreen> {
       body: SettingsList(
         platform: DevicePlatform.iOS,
         darkTheme: SettingsThemeData(
-          settingsListBackground: AppDesignSystem.darkBackground,
-          titleTextColor: AppDesignSystem.darkPrimaryText,
+          settingsListBackground: AppDesignSystem.darkPrimaryBackground,
+          titleTextColor: AppDesignSystem.darkPrimaryLabel,
           settingsSectionBackground: AppDesignSystem.darkSecondaryBackground,
         ),
         lightTheme: SettingsThemeData(
           settingsListBackground: AppDesignSystem.lightGroupedBackground,
-          settingsSectionBackground: AppDesignSystem.lightBackground,
+          settingsSectionBackground: AppDesignSystem.lightPrimaryBackground,
         ),
         sections: [
           // Seção: Conta
@@ -265,8 +265,8 @@ class _SettingsGeneralScreenState extends State<SettingsGeneralScreen> {
               'Conta',
               style: AppDesignSystem.caption1.copyWith(
                 color: isDark
-                    ? AppDesignSystem.darkSecondaryText
-                    : AppDesignSystem.lightSecondaryText,
+                    ? AppDesignSystem.darkSecondaryLabel
+                    : AppDesignSystem.lightSecondaryLabel,
               ),
             ),
             tiles: [
@@ -274,8 +274,8 @@ class _SettingsGeneralScreenState extends State<SettingsGeneralScreen> {
                 leading: Icon(
                   Icons.email_outlined,
                   color: isDark
-                      ? AppDesignSystem.darkSecondaryText
-                      : AppDesignSystem.lightSecondaryText,
+                      ? AppDesignSystem.darkSecondaryLabel
+                      : AppDesignSystem.lightSecondaryLabel,
                 ),
                 title: const Text('Email'),
                 value: Text(currentUser?.email ?? 'Não disponível'),
@@ -284,8 +284,8 @@ class _SettingsGeneralScreenState extends State<SettingsGeneralScreen> {
                 leading: Icon(
                   Icons.person_outline,
                   color: isDark
-                      ? AppDesignSystem.darkSecondaryText
-                      : AppDesignSystem.lightSecondaryText,
+                      ? AppDesignSystem.darkSecondaryLabel
+                      : AppDesignSystem.lightSecondaryLabel,
                 ),
                 title: const Text('Editar Perfil'),
                 value: Text(
@@ -297,8 +297,8 @@ class _SettingsGeneralScreenState extends State<SettingsGeneralScreen> {
                 leading: Icon(
                   Icons.lock_outline,
                   color: isDark
-                      ? AppDesignSystem.darkSecondaryText
-                      : AppDesignSystem.lightSecondaryText,
+                      ? AppDesignSystem.darkSecondaryLabel
+                      : AppDesignSystem.lightSecondaryLabel,
                 ),
                 title: const Text('Alterar Senha'),
                 onPressed: (_) => _showChangePasswordDialog(),
@@ -312,8 +312,8 @@ class _SettingsGeneralScreenState extends State<SettingsGeneralScreen> {
               'Preferências',
               style: AppDesignSystem.caption1.copyWith(
                 color: isDark
-                    ? AppDesignSystem.darkSecondaryText
-                    : AppDesignSystem.lightSecondaryText,
+                    ? AppDesignSystem.darkSecondaryLabel
+                    : AppDesignSystem.lightSecondaryLabel,
               ),
             ),
             tiles: [
@@ -335,8 +335,8 @@ class _SettingsGeneralScreenState extends State<SettingsGeneralScreen> {
                 leading: Icon(
                   Icons.notifications_outlined,
                   color: isDark
-                      ? AppDesignSystem.darkSecondaryText
-                      : AppDesignSystem.lightSecondaryText,
+                      ? AppDesignSystem.darkSecondaryLabel
+                      : AppDesignSystem.lightSecondaryLabel,
                 ),
                 title: const Text('Notificações'),
                 description:
@@ -346,8 +346,8 @@ class _SettingsGeneralScreenState extends State<SettingsGeneralScreen> {
                 leading: Icon(
                   Icons.language_outlined,
                   color: isDark
-                      ? AppDesignSystem.darkSecondaryText
-                      : AppDesignSystem.lightSecondaryText,
+                      ? AppDesignSystem.darkSecondaryLabel
+                      : AppDesignSystem.lightSecondaryLabel,
                 ),
                 title: const Text('Idioma'),
                 value: Text(_languageDisplay),
@@ -357,8 +357,8 @@ class _SettingsGeneralScreenState extends State<SettingsGeneralScreen> {
                 leading: Icon(
                   isDark ? Icons.dark_mode : Icons.light_mode,
                   color: isDark
-                      ? AppDesignSystem.darkSecondaryText
-                      : AppDesignSystem.lightSecondaryText,
+                      ? AppDesignSystem.darkSecondaryLabel
+                      : AppDesignSystem.lightSecondaryLabel,
                 ),
                 title: const Text('Tema'),
                 value: const Text('Segue o sistema'),
@@ -373,8 +373,8 @@ class _SettingsGeneralScreenState extends State<SettingsGeneralScreen> {
               'Sobre',
               style: AppDesignSystem.caption1.copyWith(
                 color: isDark
-                    ? AppDesignSystem.darkSecondaryText
-                    : AppDesignSystem.lightSecondaryText,
+                    ? AppDesignSystem.darkSecondaryLabel
+                    : AppDesignSystem.lightSecondaryLabel,
               ),
             ),
             tiles: [
@@ -382,8 +382,8 @@ class _SettingsGeneralScreenState extends State<SettingsGeneralScreen> {
                 leading: Icon(
                   Icons.info_outline,
                   color: isDark
-                      ? AppDesignSystem.darkSecondaryText
-                      : AppDesignSystem.lightSecondaryText,
+                      ? AppDesignSystem.darkSecondaryLabel
+                      : AppDesignSystem.lightSecondaryLabel,
                 ),
                 title: const Text('Versão'),
                 value: const Text('1.0.0'),
@@ -392,8 +392,8 @@ class _SettingsGeneralScreenState extends State<SettingsGeneralScreen> {
                 leading: Icon(
                   Icons.help_outline,
                   color: isDark
-                      ? AppDesignSystem.darkSecondaryText
-                      : AppDesignSystem.lightSecondaryText,
+                      ? AppDesignSystem.darkSecondaryLabel
+                      : AppDesignSystem.lightSecondaryLabel,
                 ),
                 title: const Text('Ajuda e Suporte'),
                 onPressed: (_) {
@@ -404,8 +404,8 @@ class _SettingsGeneralScreenState extends State<SettingsGeneralScreen> {
                 leading: Icon(
                   Icons.privacy_tip_outlined,
                   color: isDark
-                      ? AppDesignSystem.darkSecondaryText
-                      : AppDesignSystem.lightSecondaryText,
+                      ? AppDesignSystem.darkSecondaryLabel
+                      : AppDesignSystem.lightSecondaryLabel,
                 ),
                 title: const Text('Política de Privacidade'),
                 onPressed: (_) {
@@ -419,10 +419,10 @@ class _SettingsGeneralScreenState extends State<SettingsGeneralScreen> {
           SettingsSection(
             tiles: [
               SettingsTile.navigation(
-                leading: Icon(Icons.logout, color: AppDesignSystem.accentRed),
+                leading: Icon(Icons.logout, color: AppDesignSystem.systemRed),
                 title: Text(
                   'Sair',
-                  style: TextStyle(color: AppDesignSystem.accentRed),
+                  style: TextStyle(color: AppDesignSystem.systemRed),
                 ),
                 onPressed: (_) => _handleLogout(),
               ),

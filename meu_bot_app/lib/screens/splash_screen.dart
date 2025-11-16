@@ -64,8 +64,8 @@ class _SplashScreenState extends State<SplashScreen> {
 
     return Scaffold(
       backgroundColor: isDark
-          ? AppDesignSystem.darkBackground
-          : AppDesignSystem.lightBackground,
+          ? AppDesignSystem.darkPrimaryBackground
+          : AppDesignSystem.lightPrimaryBackground,
       body: Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
@@ -76,10 +76,10 @@ class _SplashScreenState extends State<SplashScreen> {
               height: 120,
               decoration: BoxDecoration(
                 color: isDark
-                    ? AppDesignSystem.primaryBlueDark
-                    : AppDesignSystem.primaryBlue,
+                    ? AppDesignSystem.systemBlueDark
+                    : AppDesignSystem.systemBlue,
                 shape: BoxShape.circle,
-                boxShadow: AppDesignSystem.shadowSoft(isDark),
+                boxShadow: AppDesignSystem.shadowLevel1(isDark),
               ),
               child: const Icon(
                 Icons.smart_toy_rounded,
@@ -91,15 +91,15 @@ class _SplashScreenState extends State<SplashScreen> {
                 .fadeIn(duration: 600.ms)
                 .scale(begin: const Offset(0.8, 0.8), curve: Curves.easeOut),
 
-            const SizedBox(height: AppDesignSystem.spacingXL),
+            const SizedBox(height: AppDesignSystem.spacing32),
 
             // Nome do app
             Text(
               'Meu Bot',
               style: AppDesignSystem.largeTitle.copyWith(
                 color: isDark
-                    ? AppDesignSystem.darkPrimaryText
-                    : AppDesignSystem.lightPrimaryText,
+                    ? AppDesignSystem.darkPrimaryLabel
+                    : AppDesignSystem.lightPrimaryLabel,
                 fontSize: 38,
                 letterSpacing: -0.5,
               ),
@@ -108,15 +108,15 @@ class _SplashScreenState extends State<SplashScreen> {
                 .fadeIn(delay: 200.ms, duration: 600.ms)
                 .slideY(begin: -0.1, end: 0),
 
-            const SizedBox(height: AppDesignSystem.spacingS),
+            const SizedBox(height: AppDesignSystem.spacing8),
 
             // Subtítulo
             Text(
               'Seu assistente virtual inteligente',
               style: AppDesignSystem.body.copyWith(
                 color: isDark
-                    ? AppDesignSystem.darkSecondaryText
-                    : AppDesignSystem.lightSecondaryText,
+                    ? AppDesignSystem.darkSecondaryLabel
+                    : AppDesignSystem.lightSecondaryLabel,
                 fontWeight: FontWeight.w400,
               ),
               textAlign: TextAlign.center,
@@ -125,7 +125,7 @@ class _SplashScreenState extends State<SplashScreen> {
                 .fadeIn(delay: 400.ms, duration: 600.ms)
                 .slideY(begin: -0.1, end: 0),
 
-            const SizedBox(height: AppDesignSystem.spacingXXL),
+            const SizedBox(height: AppDesignSystem.spacing64),
 
             // Loading indicator
             SizedBox(
@@ -135,8 +135,8 @@ class _SplashScreenState extends State<SplashScreen> {
                 strokeWidth: 3,
                 valueColor: AlwaysStoppedAnimation<Color>(
                   isDark
-                      ? AppDesignSystem.primaryBlueDark
-                      : AppDesignSystem.primaryBlue,
+                      ? AppDesignSystem.systemBlueDark
+                      : AppDesignSystem.systemBlue,
                 ),
               ),
             ).animate().fadeIn(delay: 600.ms, duration: 600.ms),

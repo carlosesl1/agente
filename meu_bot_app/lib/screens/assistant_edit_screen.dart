@@ -139,7 +139,7 @@ class _AssistantEditScreenState extends State<AssistantEditScreen> {
           ),
           TextButton(
             onPressed: () => Navigator.pop(context, true),
-            style: TextButton.styleFrom(foregroundColor: AppDesignSystem.accentRed),
+            style: TextButton.styleFrom(foregroundColor: AppDesignSystem.systemRed),
             child: const Text('Deletar'),
           ),
         ],
@@ -180,8 +180,8 @@ class _AssistantEditScreenState extends State<AssistantEditScreen> {
 
     return Scaffold(
       backgroundColor: isDark
-          ? AppDesignSystem.darkBackground
-          : AppDesignSystem.lightBackground,
+          ? AppDesignSystem.darkPrimaryBackground
+          : AppDesignSystem.lightPrimaryBackground,
       appBar: AppDesignSystem.appBar(
         title: _isEditing ? 'Editar Assistente' : 'Novo Assistente',
         isDark: isDark,
@@ -190,7 +190,7 @@ class _AssistantEditScreenState extends State<AssistantEditScreen> {
                 IconButton(
                   icon: Icon(
                     Icons.delete_outline,
-                    color: AppDesignSystem.accentRed,
+                    color: AppDesignSystem.systemRed,
                   ),
                   onPressed: _isLoading ? null : _deleteAssistant,
                   tooltip: 'Deletar',
@@ -202,7 +202,7 @@ class _AssistantEditScreenState extends State<AssistantEditScreen> {
         child: Form(
           key: _formKey,
           child: ListView(
-            padding: const EdgeInsets.all(AppDesignSystem.spacingL),
+            padding: const EdgeInsets.all(AppDesignSystem.spacing20),
             children: [
               // Preview do avatar
               Center(
@@ -221,7 +221,7 @@ class _AssistantEditScreenState extends State<AssistantEditScreen> {
                   .fadeIn(duration: 400.ms)
                   .scale(begin: const Offset(0.8, 0.8), curve: Curves.easeOut),
 
-              const SizedBox(height: AppDesignSystem.spacingXL),
+              const SizedBox(height: AppDesignSystem.spacing32),
 
               // Nome
               TextFormField(
@@ -236,8 +236,8 @@ class _AssistantEditScreenState extends State<AssistantEditScreen> {
                 onChanged: (_) => setState(() {}),
                 style: AppDesignSystem.body.copyWith(
                   color: isDark
-                      ? AppDesignSystem.darkPrimaryText
-                      : AppDesignSystem.lightPrimaryText,
+                      ? AppDesignSystem.darkPrimaryLabel
+                      : AppDesignSystem.lightPrimaryLabel,
                 ),
                 decoration: AppDesignSystem.inputDecoration(
                   label: 'Nome do Assistente',
@@ -247,7 +247,7 @@ class _AssistantEditScreenState extends State<AssistantEditScreen> {
                 ),
               ).animate().fadeIn(delay: 100.ms, duration: 400.ms),
 
-              const SizedBox(height: AppDesignSystem.spacingM),
+              const SizedBox(height: AppDesignSystem.spacing16),
 
               // Webhook URL
               TextFormField(
@@ -265,8 +265,8 @@ class _AssistantEditScreenState extends State<AssistantEditScreen> {
                 },
                 style: AppDesignSystem.body.copyWith(
                   color: isDark
-                      ? AppDesignSystem.darkPrimaryText
-                      : AppDesignSystem.lightPrimaryText,
+                      ? AppDesignSystem.darkPrimaryLabel
+                      : AppDesignSystem.lightPrimaryLabel,
                 ),
                 decoration: AppDesignSystem.inputDecoration(
                   label: 'Webhook URL (N8N)',
@@ -276,7 +276,7 @@ class _AssistantEditScreenState extends State<AssistantEditScreen> {
                 ),
               ).animate().fadeIn(delay: 200.ms, duration: 400.ms),
 
-              const SizedBox(height: AppDesignSystem.spacingM),
+              const SizedBox(height: AppDesignSystem.spacing16),
 
               // Avatar URL (opcional)
               TextFormField(
@@ -286,8 +286,8 @@ class _AssistantEditScreenState extends State<AssistantEditScreen> {
                 onChanged: (_) => setState(() {}),
                 style: AppDesignSystem.body.copyWith(
                   color: isDark
-                      ? AppDesignSystem.darkPrimaryText
-                      : AppDesignSystem.lightPrimaryText,
+                      ? AppDesignSystem.darkPrimaryLabel
+                      : AppDesignSystem.lightPrimaryLabel,
                 ),
                 decoration: AppDesignSystem.inputDecoration(
                   label: 'Avatar URL (opcional)',
@@ -297,23 +297,23 @@ class _AssistantEditScreenState extends State<AssistantEditScreen> {
                 ),
               ).animate().fadeIn(delay: 300.ms, duration: 400.ms),
 
-              const SizedBox(height: AppDesignSystem.spacingXL),
+              const SizedBox(height: AppDesignSystem.spacing32),
 
               // Seletor de cor primária
               Text(
                 'Cor do Assistente',
                 style: AppDesignSystem.title3.copyWith(
                   color: isDark
-                      ? AppDesignSystem.darkPrimaryText
-                      : AppDesignSystem.lightPrimaryText,
+                      ? AppDesignSystem.darkPrimaryLabel
+                      : AppDesignSystem.lightPrimaryLabel,
                 ),
               ).animate().fadeIn(delay: 400.ms, duration: 400.ms),
 
-              const SizedBox(height: AppDesignSystem.spacingM),
+              const SizedBox(height: AppDesignSystem.spacing16),
 
               Wrap(
-                spacing: AppDesignSystem.spacingM,
-                runSpacing: AppDesignSystem.spacingM,
+                spacing: AppDesignSystem.spacing16,
+                runSpacing: AppDesignSystem.spacing16,
                 children: AssistantService.defaultColors
                     .asMap()
                     .entries
@@ -336,13 +336,13 @@ class _AssistantEditScreenState extends State<AssistantEditScreen> {
                         border: isSelected
                             ? Border.all(
                                 color: isDark
-                                    ? AppDesignSystem.darkPrimaryText
-                                    : AppDesignSystem.lightPrimaryText,
+                                    ? AppDesignSystem.darkPrimaryLabel
+                                    : AppDesignSystem.lightPrimaryLabel,
                                 width: 3,
                               )
                             : null,
                         boxShadow: isSelected
-                            ? AppDesignSystem.shadowSoft(isDark)
+                            ? AppDesignSystem.shadowLevel1(isDark)
                             : null,
                       ),
                       child: isSelected
@@ -363,7 +363,7 @@ class _AssistantEditScreenState extends State<AssistantEditScreen> {
                 }).toList(),
               ),
 
-              const SizedBox(height: AppDesignSystem.spacingXL),
+              const SizedBox(height: AppDesignSystem.spacing32),
 
               // Botão Salvar
               AppDesignSystem.primaryButton(

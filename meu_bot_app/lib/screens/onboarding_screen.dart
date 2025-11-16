@@ -45,8 +45,8 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
         _getIconForPage(assetName),
         size: size * 0.5,
         color: isDark
-            ? AppDesignSystem.primaryBlueDark
-            : AppDesignSystem.primaryBlue,
+            ? AppDesignSystem.systemBlueDark
+            : AppDesignSystem.systemBlue,
       ),
     )
         .animate()
@@ -80,25 +80,25 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
     final pageDecoration = PageDecoration(
       titleTextStyle: AppDesignSystem.title1.copyWith(
         color: isDark
-            ? AppDesignSystem.darkPrimaryText
-            : AppDesignSystem.lightPrimaryText,
+            ? AppDesignSystem.darkPrimaryLabel
+            : AppDesignSystem.lightPrimaryLabel,
       ),
       bodyTextStyle: AppDesignSystem.body.copyWith(
         color: isDark
-            ? AppDesignSystem.darkSecondaryText
-            : AppDesignSystem.lightSecondaryText,
+            ? AppDesignSystem.darkSecondaryLabel
+            : AppDesignSystem.lightSecondaryLabel,
       ),
       bodyPadding: const EdgeInsets.fromLTRB(
-        AppDesignSystem.spacingL,
+        AppDesignSystem.spacing20,
         0.0,
-        AppDesignSystem.spacingL,
-        AppDesignSystem.spacingL,
+        AppDesignSystem.spacing20,
+        AppDesignSystem.spacing20,
       ),
       pageColor: isDark
-          ? AppDesignSystem.darkBackground
-          : AppDesignSystem.lightBackground,
-      imagePadding: const EdgeInsets.all(AppDesignSystem.spacingXL),
-      titlePadding: const EdgeInsets.only(top: AppDesignSystem.spacingL),
+          ? AppDesignSystem.darkPrimaryBackground
+          : AppDesignSystem.lightPrimaryBackground,
+      imagePadding: const EdgeInsets.all(AppDesignSystem.spacing32),
+      titlePadding: const EdgeInsets.only(top: AppDesignSystem.spacing20),
       bodyAlignment: Alignment.center,
       imageAlignment: Alignment.center,
     );
@@ -106,8 +106,8 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
     return IntroductionScreen(
       key: _introKey,
       globalBackgroundColor: isDark
-          ? AppDesignSystem.darkBackground
-          : AppDesignSystem.lightBackground,
+          ? AppDesignSystem.darkPrimaryBackground
+          : AppDesignSystem.lightPrimaryBackground,
       pages: [
         // Página 1: Múltiplos Assistentes
         PageViewModel(
@@ -155,28 +155,28 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
         'Pular',
         style: AppDesignSystem.headline.copyWith(
           color: isDark
-              ? AppDesignSystem.primaryBlueDark
-              : AppDesignSystem.primaryBlue,
+              ? AppDesignSystem.systemBlueDark
+              : AppDesignSystem.systemBlue,
         ),
       ),
       next: Icon(
         Icons.arrow_forward_ios,
         color: isDark
-            ? AppDesignSystem.primaryBlueDark
-            : AppDesignSystem.primaryBlue,
+            ? AppDesignSystem.systemBlueDark
+            : AppDesignSystem.systemBlue,
         size: 20,
       ),
       done: Text(
         'Começar',
         style: AppDesignSystem.headline.copyWith(
           color: isDark
-              ? AppDesignSystem.primaryBlueDark
-              : AppDesignSystem.primaryBlue,
+              ? AppDesignSystem.systemBlueDark
+              : AppDesignSystem.systemBlue,
         ),
       ),
       curve: Curves.easeInOut,
-      controlsMargin: const EdgeInsets.all(AppDesignSystem.spacingM),
-      controlsPadding: const EdgeInsets.all(AppDesignSystem.spacingS),
+      controlsMargin: const EdgeInsets.all(AppDesignSystem.spacing16),
+      controlsPadding: const EdgeInsets.all(AppDesignSystem.spacing8),
       dotsDecorator: DotsDecorator(
         size: const Size(8.0, 8.0),
         color: isDark
@@ -184,8 +184,8 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
             : AppDesignSystem.lightSeparator,
         activeSize: const Size(24.0, 8.0),
         activeColor: isDark
-            ? AppDesignSystem.primaryBlueDark
-            : AppDesignSystem.primaryBlue,
+            ? AppDesignSystem.systemBlueDark
+            : AppDesignSystem.systemBlue,
         activeShape: const RoundedRectangleBorder(
           borderRadius: BorderRadius.all(Radius.circular(4.0)),
         ),
@@ -196,7 +196,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
             : AppDesignSystem.lightSecondaryBackground,
         shape: const RoundedRectangleBorder(
           borderRadius: BorderRadius.all(
-            Radius.circular(AppDesignSystem.radiusS),
+            Radius.circular(AppDesignSystem.cornerRadius8),
           ),
         ),
       ),
