@@ -1,8 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:flutter_animate/flutter_animate.dart';
+import 'package:glassmorphism/glassmorphism.dart';
 import '../models/assistant_model.dart';
 import '../providers/assistant_provider.dart';
 import '../services/assistant_service.dart';
+import '../theme/theme_provider.dart';
 
 /// Tela para criar ou editar um assistente
 class AssistantEditScreen extends StatefulWidget {
@@ -170,11 +173,118 @@ class _AssistantEditScreenState extends State<AssistantEditScreen> {
     }
   }
 
+  Widget _buildTextField({
+    required TextEditingController controller,
+    required String label,
+    required String hint,
+    required IconData icon,
+    TextInputType? keyboardType,
+    String? Function(String?)? validator,
+    void Function(String)? onChanged,
+  }) {
+    return TextFormField(
+      controller: controller,
+      keyboardType: keyboardType,
+      enabled: !_isLoading,
+      validator: validator,
+      onChanged: onChanged,
+      style: const TextStyle(color: Colors.white),
+      decoration: InputDecoration(
+        labelText: label,
+        labelStyle: TextStyle(color: Colors.white.withOpacity(0.8)),
+        hintText: hint,
+        hintStyle: TextStyle(color: Colors.white.withOpacity(0.5)),
+        prefixIcon: Icon(icon, color: Colors.white.withOpacity(0.7)),
+        border: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12),
+          borderSide: BorderSide(color: Colors.white.withOpacity(0.3)),
+        ),
+        enabledBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12),
+          borderSide: BorderSide(color: Colors.white.withOpacity(0.3)),
+        ),
+        focusedBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12),
+          borderSide: const BorderSide(color: Colors.white, width: 2),
+        ),
+        errorBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12),
+          borderSide: BorderSide(color: Colors.red.withOpacity(0.7)),
+        ),
+        filled: true,
+        fillColor: Colors.white.withOpacity(0.1),
+      ),
+    );
+  }
+
+  Widget _buildSaveButton() {
+    return Container(
+      height: 56,
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          colors: [_selectedPrimaryColor, _selectedPrimaryColor.withOpacity(0.7)],
+        ),
+        borderRadius: BorderRadius.circular(16),
+        boxShadow: [
+          BoxShadow(
+            color: _selectedPrimaryColor.withOpacity(0.5),
+            blurRadius: 20,
+            offset: const Offset(0, 10),
+          ),
+        ],
+      ),
+      child: ElevatedButton(
+        onPressed: _isLoading ? null : _saveAssistant,
+        style: ElevatedButton.styleFrom(
+          backgroundColor: Colors.transparent,
+          shadowColor: Colors.transparent,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(16),
+          ),
+        ),
+        child: _isLoading
+            ? const SizedBox(
+                height: 24,
+                width: 24,
+                child: CircularProgressIndicator(
+                  strokeWidth: 2,
+                  valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                ),
+              )
+            : Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(
+                    _isEditing ? Icons.save_rounded : Icons.add_rounded,
+                    color: Colors.white,
+                  ),
+                  const SizedBox(width: 12),
+                  Text(
+                    _isEditing ? 'Salvar Alterações' : 'Criar Assistente',
+                    style: const TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.white,
+                      letterSpacing: 0.5,
+                    ),
+                  ),
+                ],
+              ),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
+    final themeProvider = Provider.of<ThemeProvider>(context);
+    final isDark = themeProvider.isDarkMode;
+
     return Scaffold(
+      extendBodyBehindAppBar: true,
       appBar: AppBar(
         title: Text(_isEditing ? 'Editar Assistente' : 'Novo Assistente'),
+        backgroundColor: Colors.transparent,
+        elevation: 0,
         actions: [
           if (_isEditing)
             IconButton(
@@ -184,154 +294,240 @@ class _AssistantEditScreenState extends State<AssistantEditScreen> {
             ),
         ],
       ),
-      body: Form(
-        key: _formKey,
-        child: ListView(
-          padding: const EdgeInsets.all(16),
-          children: [
-            // Preview do avatar
-            Center(
-              child: CircleAvatar(
-                radius: 50,
-                backgroundColor: _selectedPrimaryColor,
-                backgroundImage: _avatarController.text.trim().isNotEmpty
-                    ? NetworkImage(_avatarController.text.trim())
-                    : null,
-                child: _avatarController.text.trim().isEmpty
-                    ? Text(
-                        _nameController.text.isEmpty
-                            ? '?'
-                            : _nameController.text[0].toUpperCase(),
-                        style: const TextStyle(
-                          fontSize: 36,
-                          color: Colors.white,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      )
-                    : null,
-              ),
-            ),
-            const SizedBox(height: 24),
-
-            // Nome
-            TextFormField(
-              controller: _nameController,
-              decoration: const InputDecoration(
-                labelText: 'Nome do Assistente',
-                hintText: 'Ex: Trabalho, Casa, Finanças',
-                prefixIcon: Icon(Icons.person_outline),
-                border: OutlineInputBorder(),
-              ),
-              validator: (value) {
-                if (value == null || value.trim().isEmpty) {
-                  return 'Digite um nome';
-                }
-                return null;
-              },
-              onChanged: (_) => setState(() {}), // Atualiza preview
-            ),
-            const SizedBox(height: 16),
-
-            // Webhook URL
-            TextFormField(
-              controller: _webhookController,
-              decoration: const InputDecoration(
-                labelText: 'Webhook URL (N8N)',
-                hintText: 'https://...',
-                prefixIcon: Icon(Icons.link),
-                border: OutlineInputBorder(),
-              ),
-              keyboardType: TextInputType.url,
-              validator: (value) {
-                if (value == null || value.trim().isEmpty) {
-                  return 'Digite a URL do webhook';
-                }
-                if (!value.startsWith('http')) {
-                  return 'URL deve começar com http:// ou https://';
-                }
-                return null;
-              },
-            ),
-            const SizedBox(height: 16),
-
-            // Avatar URL (opcional)
-            TextFormField(
-              controller: _avatarController,
-              decoration: const InputDecoration(
-                labelText: 'Avatar URL (opcional)',
-                hintText: 'https://... (deixe vazio para usar padrão)',
-                prefixIcon: Icon(Icons.image_outlined),
-                border: OutlineInputBorder(),
-              ),
-              keyboardType: TextInputType.url,
-              onChanged: (_) => setState(() {}), // Atualiza preview
-            ),
-            const SizedBox(height: 24),
-
-            // Seletor de cor primária
-            const Text(
-              'Cor Primária',
-              style: TextStyle(
-                fontSize: 16,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-            const SizedBox(height: 8),
-            Wrap(
-              spacing: 12,
-              runSpacing: 12,
-              children: AssistantService.defaultColors.map((color) {
-                final isSelected = color == _selectedPrimaryColor;
-                return GestureDetector(
-                  onTap: () {
-                    setState(() {
-                      _selectedPrimaryColor = color;
-                    });
-                  },
+      body: Container(
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+            colors: isDark
+                ? [
+                    const Color(0xFF1A1A2E),
+                    const Color(0xFF16213E),
+                    const Color(0xFF0F3460),
+                  ]
+                : [
+                    const Color(0xFF667eea),
+                    const Color(0xFF764ba2),
+                    const Color(0xFFF093FB),
+                  ],
+          ),
+        ),
+        child: SafeArea(
+          child: Form(
+            key: _formKey,
+            child: ListView(
+              padding: const EdgeInsets.all(20),
+              children: [
+                // Preview do avatar com animação premium
+                Center(
                   child: Container(
-                    width: 50,
-                    height: 50,
                     decoration: BoxDecoration(
-                      color: color,
                       shape: BoxShape.circle,
-                      border: isSelected
-                          ? Border.all(color: Colors.black, width: 3)
+                      boxShadow: [
+                        BoxShadow(
+                          color: _selectedPrimaryColor.withOpacity(0.5),
+                          blurRadius: 30,
+                          spreadRadius: 5,
+                        ),
+                      ],
+                    ),
+                    child: CircleAvatar(
+                      radius: 60,
+                      backgroundColor: _selectedPrimaryColor,
+                      backgroundImage: _avatarController.text.trim().isNotEmpty
+                          ? NetworkImage(_avatarController.text.trim())
+                          : null,
+                      child: _avatarController.text.trim().isEmpty
+                          ? Text(
+                              _nameController.text.isEmpty
+                                  ? '?'
+                                  : _nameController.text[0].toUpperCase(),
+                              style: const TextStyle(
+                                fontSize: 42,
+                                color: Colors.white,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            )
                           : null,
                     ),
-                    child: isSelected
-                        ? const Icon(Icons.check, color: Colors.white)
-                        : null,
-                  ),
-                );
-              }).toList(),
-            ),
-            const SizedBox(height: 32),
+                  )
+                      .animate()
+                      .fadeIn(duration: 600.ms)
+                      .scale(
+                        begin: const Offset(0.5, 0.5),
+                        curve: Curves.elasticOut,
+                      ),
+                ),
+                const SizedBox(height: 32),
 
-            // Botão Salvar
-            ElevatedButton(
-              onPressed: _isLoading ? null : _saveAssistant,
-              style: ElevatedButton.styleFrom(
-                padding: const EdgeInsets.symmetric(vertical: 16),
-                backgroundColor: _selectedPrimaryColor,
-                foregroundColor: Colors.white,
-              ),
-              child: _isLoading
-                  ? const SizedBox(
-                      height: 20,
-                      width: 20,
-                      child: CircularProgressIndicator(
-                        strokeWidth: 2,
-                        color: Colors.white,
-                      ),
-                    )
-                  : Text(
-                      _isEditing ? 'Salvar Alterações' : 'Criar Assistente',
-                      style: const TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.bold,
-                      ),
+                // Card Glassmorphism com formulário
+                GlassmorphicContainer(
+                  width: double.infinity,
+                  height: null,
+                  borderRadius: 24,
+                  blur: 20,
+                  alignment: Alignment.center,
+                  border: 2,
+                  linearGradient: LinearGradient(
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                    colors: [
+                      Colors.white.withOpacity(0.1),
+                      Colors.white.withOpacity(0.05),
+                    ],
+                  ),
+                  borderGradient: LinearGradient(
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                    colors: [
+                      Colors.white.withOpacity(0.5),
+                      Colors.white.withOpacity(0.2),
+                    ],
+                  ),
+                  child: Padding(
+                    padding: const EdgeInsets.all(24.0),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [
+                        // Nome
+                        _buildTextField(
+                          controller: _nameController,
+                          label: 'Nome do Assistente',
+                          hint: 'Ex: Trabalho, Casa, Finanças',
+                          icon: Icons.person_outline,
+                          validator: (value) {
+                            if (value == null || value.trim().isEmpty) {
+                              return 'Digite um nome';
+                            }
+                            return null;
+                          },
+                          onChanged: (_) => setState(() {}),
+                        ).animate().fadeIn(delay: 200.ms, duration: 600.ms),
+
+                        const SizedBox(height: 20),
+
+                        // Webhook URL
+                        _buildTextField(
+                          controller: _webhookController,
+                          label: 'Webhook URL (N8N)',
+                          hint: 'https://...',
+                          icon: Icons.link,
+                          keyboardType: TextInputType.url,
+                          validator: (value) {
+                            if (value == null || value.trim().isEmpty) {
+                              return 'Digite a URL do webhook';
+                            }
+                            if (!value.startsWith('http')) {
+                              return 'URL deve começar com http:// ou https://';
+                            }
+                            return null;
+                          },
+                        ).animate().fadeIn(delay: 300.ms, duration: 600.ms),
+
+                        const SizedBox(height: 20),
+
+                        // Avatar URL (opcional)
+                        _buildTextField(
+                          controller: _avatarController,
+                          label: 'Avatar URL (opcional)',
+                          hint: 'https://... (deixe vazio para usar padrão)',
+                          icon: Icons.image_outlined,
+                          keyboardType: TextInputType.url,
+                          onChanged: (_) => setState(() {}),
+                        ).animate().fadeIn(delay: 400.ms, duration: 600.ms),
+
+                        const SizedBox(height: 28),
+
+                        // Seletor de cor primária
+                        Text(
+                          'Cor Primária',
+                          style: TextStyle(
+                            fontSize: 18,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.white,
+                            shadows: [
+                              Shadow(
+                                color: Colors.black.withOpacity(0.3),
+                                offset: const Offset(0, 2),
+                                blurRadius: 4,
+                              ),
+                            ],
+                          ),
+                        ).animate().fadeIn(delay: 500.ms, duration: 600.ms),
+
+                        const SizedBox(height: 16),
+
+                        Wrap(
+                          spacing: 16,
+                          runSpacing: 16,
+                          children: AssistantService.defaultColors
+                              .asMap()
+                              .entries
+                              .map((entry) {
+                            final index = entry.key;
+                            final color = entry.value;
+                            final isSelected = color == _selectedPrimaryColor;
+                            return GestureDetector(
+                              onTap: () {
+                                setState(() {
+                                  _selectedPrimaryColor = color;
+                                });
+                              },
+                              child: Container(
+                                width: 56,
+                                height: 56,
+                                decoration: BoxDecoration(
+                                  color: color,
+                                  shape: BoxShape.circle,
+                                  border: isSelected
+                                      ? Border.all(
+                                          color: Colors.white,
+                                          width: 4,
+                                        )
+                                      : null,
+                                  boxShadow: [
+                                    BoxShadow(
+                                      color: color.withOpacity(0.5),
+                                      blurRadius: isSelected ? 15 : 8,
+                                      spreadRadius: isSelected ? 3 : 0,
+                                    ),
+                                  ],
+                                ),
+                                child: isSelected
+                                    ? const Icon(
+                                        Icons.check_rounded,
+                                        color: Colors.white,
+                                        size: 32,
+                                      )
+                                    : null,
+                              )
+                                  .animate()
+                                  .fadeIn(
+                                    delay: (600 + (50 * index)).ms,
+                                    duration: 400.ms,
+                                  )
+                                  .scale(
+                                    begin: const Offset(0.5, 0.5),
+                                    curve: Curves.elasticOut,
+                                  ),
+                            );
+                          }).toList(),
+                        ),
+                      ],
                     ),
-            ),
+                  ),
+                )
+                    .animate()
+                    .fadeIn(delay: 100.ms, duration: 800.ms)
+                    .slideY(begin: 0.2, end: 0),
+
+                const SizedBox(height: 24),
+
+                // Botão Salvar Premium
+                _buildSaveButton()
+                    .animate()
+                    .fadeIn(delay: 700.ms, duration: 600.ms)
+                    .slideY(begin: 0.3, end: 0),
           ],
         ),
       ),

@@ -6,6 +6,7 @@ import 'package:flutter_chat_types/flutter_chat_types.dart' as types;
 import 'package:uuid/uuid.dart';
 import 'package:timeago/timeago.dart' as timeago;
 import 'package:provider/provider.dart';
+import 'package:flutter_animate/flutter_animate.dart';
 import '../services/supabase_service.dart';
 import '../services/n8n_service.dart';
 import '../services/media_service.dart';
@@ -815,24 +816,40 @@ class _ChatScreenState extends State<ChatScreen> with AutomaticKeepAliveClientMi
                   color: Colors.grey[300],
                   borderRadius: BorderRadius.circular(2),
                 ),
-              ),
+              )
+                  .animate()
+                  .fadeIn(duration: 300.ms)
+                  .scale(begin: const Offset(0.5, 0.5)),
               // Opção: Galeria
               ListTile(
                 leading: Container(
                   padding: const EdgeInsets.all(8),
                   decoration: BoxDecoration(
                     color: Colors.blue[50],
-                    borderRadius: BorderRadius.circular(8),
+                    borderRadius: BorderRadius.circular(12),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.blue.withOpacity(0.2),
+                        blurRadius: 8,
+                        offset: const Offset(0, 2),
+                      ),
+                    ],
                   ),
                   child: const Icon(Icons.photo_library, color: Colors.blue),
                 ),
-                title: const Text('Galeria'),
+                title: const Text(
+                  'Galeria',
+                  style: TextStyle(fontWeight: FontWeight.w600),
+                ),
                 subtitle: const Text('Escolher foto da galeria'),
                 onTap: () {
                   Navigator.pop(context);
                   _handleImageSelection();
                 },
-              ),
+              )
+                  .animate()
+                  .fadeIn(delay: 100.ms, duration: 400.ms)
+                  .slideX(begin: -0.2, end: 0, curve: Curves.easeOut),
               const SizedBox(height: 8),
               // Opção: Câmera
               ListTile(
@@ -840,17 +857,30 @@ class _ChatScreenState extends State<ChatScreen> with AutomaticKeepAliveClientMi
                   padding: const EdgeInsets.all(8),
                   decoration: BoxDecoration(
                     color: Colors.green[50],
-                    borderRadius: BorderRadius.circular(8),
+                    borderRadius: BorderRadius.circular(12),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.green.withOpacity(0.2),
+                        blurRadius: 8,
+                        offset: const Offset(0, 2),
+                      ),
+                    ],
                   ),
                   child: const Icon(Icons.camera_alt, color: Colors.green),
                 ),
-                title: const Text('Câmera'),
+                title: const Text(
+                  'Câmera',
+                  style: TextStyle(fontWeight: FontWeight.w600),
+                ),
                 subtitle: const Text('Tirar uma foto'),
                 onTap: () {
                   Navigator.pop(context);
                   _handleCameraCapture();
                 },
-              ),
+              )
+                  .animate()
+                  .fadeIn(delay: 200.ms, duration: 400.ms)
+                  .slideX(begin: -0.2, end: 0, curve: Curves.easeOut),
             ],
           ),
         ),
@@ -883,29 +913,47 @@ class _ChatScreenState extends State<ChatScreen> with AutomaticKeepAliveClientMi
             ? Row(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  CircleAvatar(
-                    radius: 18,
-                    backgroundColor: currentAssistant.primaryColor,
-                    backgroundImage: currentAssistant.avatarUrl != null
-                        ? NetworkImage(currentAssistant.effectiveAvatarUrl)
-                        : null,
-                    child: currentAssistant.avatarUrl == null
-                        ? Text(
-                            currentAssistant.name[0].toUpperCase(),
-                            style: const TextStyle(
-                              color: Colors.white,
-                              fontSize: 16,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          )
-                        : null,
-                  ),
+                  Container(
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      boxShadow: [
+                        BoxShadow(
+                          color: currentAssistant.primaryColor.withOpacity(0.3),
+                          blurRadius: 8,
+                          spreadRadius: 1,
+                        ),
+                      ],
+                    ),
+                    child: CircleAvatar(
+                      radius: 18,
+                      backgroundColor: currentAssistant.primaryColor,
+                      backgroundImage: currentAssistant.avatarUrl != null
+                          ? NetworkImage(currentAssistant.effectiveAvatarUrl)
+                          : null,
+                      child: currentAssistant.avatarUrl == null
+                          ? Text(
+                              currentAssistant.name[0].toUpperCase(),
+                              style: const TextStyle(
+                                color: Colors.white,
+                                fontSize: 16,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            )
+                          : null,
+                    ),
+                  )
+                      .animate()
+                      .fadeIn(duration: 400.ms)
+                      .scale(begin: const Offset(0.8, 0.8), curve: Curves.easeOut),
                   const SizedBox(width: 12),
                   Flexible(
                     child: Text(
                       currentAssistant.name,
                       overflow: TextOverflow.ellipsis,
-                    ),
+                    )
+                        .animate()
+                        .fadeIn(delay: 100.ms, duration: 400.ms)
+                        .slideX(begin: -0.2, end: 0),
                   ),
                 ],
               )
@@ -1101,7 +1149,13 @@ class _ChatScreenState extends State<ChatScreen> with AutomaticKeepAliveClientMi
               Icons.chat_bubble_outline,
               size: 80,
               color: Colors.grey[300],
-            ),
+            )
+                .animate()
+                .fadeIn(duration: 600.ms)
+                .scale(
+                  begin: const Offset(0.5, 0.5),
+                  curve: Curves.elasticOut,
+                ),
             const SizedBox(height: 16),
             Text(
               'Nenhuma mensagem ainda',
@@ -1110,7 +1164,10 @@ class _ChatScreenState extends State<ChatScreen> with AutomaticKeepAliveClientMi
                 fontWeight: FontWeight.w500,
                 color: Colors.grey[600],
               ),
-            ),
+            )
+                .animate()
+                .fadeIn(delay: 200.ms, duration: 600.ms)
+                .slideY(begin: 0.2, end: 0),
             const SizedBox(height: 8),
             Text(
               'Envie uma mensagem para começar a conversar com o bot!',
@@ -1119,7 +1176,10 @@ class _ChatScreenState extends State<ChatScreen> with AutomaticKeepAliveClientMi
                 fontSize: 14,
                 color: Colors.grey[500],
               ),
-            ),
+            )
+                .animate()
+                .fadeIn(delay: 400.ms, duration: 600.ms)
+                .slideY(begin: 0.2, end: 0),
           ],
         ),
       ),
