@@ -132,13 +132,24 @@ class _ChatScreenState extends State<ChatScreen> with AutomaticKeepAliveClientMi
 
   /// Callback quando o assistente ativo muda
   void _onAssistantChanged() {
+    final assistantProvider = context.read<AssistantProvider>();
+    final currentAssistant = assistantProvider.currentAssistant;
+
+    print('🔄 Assistente mudou: ${currentAssistant?.name ?? "nenhum"}');
+
     // Evita recarregar se já estiver carregando
     if (_isLoadingHistory) {
-      print('⏭️  Assistente mudou, mas já está carregando mensagens...');
+      print('⏭️  Já está carregando, aguardando...');
+      // Agenda para recarregar depois que terminar
+      Future.delayed(const Duration(milliseconds: 500), () {
+        if (mounted && !_isLoadingHistory) {
+          print('🔄 Recarregando após delay...');
+          _loadMessagesFromDatabase();
+        }
+      });
       return;
     }
 
-    print('🔄 Assistente mudou, recarregando mensagens...');
     _loadMessagesFromDatabase();
   }
 
@@ -184,6 +195,8 @@ class _ChatScreenState extends State<ChatScreen> with AutomaticKeepAliveClientMi
 
   /// Carrega mensagens do banco de dados de forma otimizada
   Future<void> _loadMessagesFromDatabase() async {
+    if (!mounted) return;
+
     setState(() {
       _isLoadingHistory = true;
     });
@@ -193,22 +206,44 @@ class _ChatScreenState extends State<ChatScreen> with AutomaticKeepAliveClientMi
 
       if (userId == null) {
         print('⚠️ Usuário não autenticado');
-        setState(() {
-          _isLoadingHistory = false;
-        });
+        if (mounted) {
+          setState(() {
+            _isLoadingHistory = false;
+          });
+        }
         return;
       }
-
-      print('🔧 Inicializando MessageLazyLoader com pageSize=10');
 
       // Obtém o assistente atual
       final assistantProvider = context.read<AssistantProvider>();
       final currentAssistant = assistantProvider.currentAssistant;
 
+      // Se não houver assistente, não carrega mensagens
+      if (currentAssistant == null) {
+        print('⏭️  Nenhum assistente selecionado, pulando carregamento de mensagens');
+        if (mounted) {
+          setState(() {
+            _isLoadingHistory = false;
+            _messages.clear();
+          });
+        }
+        return;
+      }
+
+      print('🔧 Inicializando MessageLazyLoader para assistente: ${currentAssistant.name}');
+
+      // Cancela subscription antiga se existir
+      await _messagesSubscription?.cancel();
+      _messagesSubscription = null;
+
+      // Descarta lazy loader antigo se existir
+      _lazyLoader?.dispose();
+      _lazyLoader = null;
+
       // Inicializa o lazy loader com 10 mensagens por página
       _lazyLoader = MessageLazyLoader(
         userId: userId,
-        assistantId: currentAssistant?.id, // Filtra por assistente
+        assistantId: currentAssistant.id, // Filtra por assistente
         pageSize: 10, // Carrega apenas 10 mensagens inicialmente
         scrollThreshold: 300.0,
       );
@@ -225,20 +260,29 @@ class _ChatScreenState extends State<ChatScreen> with AutomaticKeepAliveClientMi
         }
       });
 
-      // Carrega primeira página (10 mensagens)
+      // Carrega primeira página (10 mensagens) com timeout de segurança
       print('📥 Iniciando carregamento da primeira página...');
-      await _lazyLoader!.initialize(autoLoad: true);
+      await _lazyLoader!.initialize(autoLoad: true).timeout(
+        const Duration(seconds: 10),
+        onTimeout: () {
+          print('⏱️  Timeout ao carregar mensagens');
+        },
+      );
 
-      setState(() {
-        _isLoadingHistory = false;
-      });
+      if (mounted) {
+        setState(() {
+          _isLoadingHistory = false;
+        });
+      }
 
       print('✓ ${_messages.length} mensagens carregadas do banco');
     } catch (e) {
       print('✗ Erro ao carregar mensagens: $e');
-      setState(() {
-        _isLoadingHistory = false;
-      });
+      if (mounted) {
+        setState(() {
+          _isLoadingHistory = false;
+        });
+      }
     }
   }
 
@@ -935,9 +979,7 @@ class _ChatScreenState extends State<ChatScreen> with AutomaticKeepAliveClientMi
           Expanded(
             child: _isLoadingHistory
                 ? _buildLoadingState()
-                : _messages.isEmpty
-                    ? _buildEmptyState()
-                    : RefreshIndicator(
+                : RefreshIndicator(
                         onRefresh: _handleRefresh,
                         child: RepaintBoundary(
                           child: Chat(
