@@ -105,6 +105,8 @@ dependencies:
   flutter_markdown: ^0.7.4+1  # Renderização de Markdown
   url_launcher: ^6.3.1  # Abrir URLs
   flutter_cache_manager: ^3.4.1  # Cache de imagens e arquivos
+  html: ^0.15.4  # Parser HTML para link preview
+  cached_network_image: ^3.4.1  # Cache de imagens de rede
 
 dev_dependencies:
   flutter_test:

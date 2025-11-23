@@ -19,6 +19,8 @@ import '../widgets/skeleton_loading.dart';
 import '../widgets/typing_indicator.dart';
 import '../widgets/assistants_drawer.dart';
 import '../screens/assistant_edit_screen.dart';
+import '../screens/message_search_screen.dart';
+import '../screens/stats_screen.dart';
 import '../theme/app_themes.dart';
 import '../theme/theme_provider.dart';
 import '../theme/design_system.dart';
@@ -973,10 +975,165 @@ class _ChatScreenState extends State<ChatScreen> with AutomaticKeepAliveClientMi
           ),
         ),
         actions: [
+          // Botão de busca
+          IconButton(
+            icon: Icon(
+              Icons.search,
+              color: isDark
+                  ? AppDesignSystem.darkPrimaryLabel
+                  : AppDesignSystem.lightPrimaryLabel,
+            ),
+            tooltip: 'Buscar Mensagens',
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => const MessageSearchScreen(),
+                ),
+              );
+            },
+          ),
+          // Menu de opções
+          PopupMenuButton<String>(
+            icon: Icon(
+              Icons.more_vert,
+              color: isDark
+                  ? AppDesignSystem.darkPrimaryLabel
+                  : AppDesignSystem.lightPrimaryLabel,
+            ),
+            tooltip: 'Mais opções',
+            onSelected: (value) {
+              switch (value) {
+                case 'stats':
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => const StatsScreen(),
+                    ),
+                  );
+                  break;
+                case 'settings':
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => const SettingsScreen(),
+                    ),
+                  );
+                  break;
+                case 'assistant_settings':
+                  if (currentAssistant != null) {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => AssistantEditScreen(
+                          assistant: currentAssistant,
+                        ),
+                      ),
+                    );
+                  }
+                  break;
+                case 'logout':
+                  _handleLogout();
+                  break;
+              }
+            },
+            itemBuilder: (context) => [
+              PopupMenuItem(
+                value: 'stats',
+                child: Row(
+                  children: [
+                    Icon(
+                      Icons.bar_chart,
+                      color: isDark
+                          ? AppDesignSystem.darkPrimaryLabel
+                          : AppDesignSystem.lightPrimaryLabel,
+                      size: 20,
+                    ),
+                    SizedBox(width: AppDesignSystem.spacing12),
+                    Text(
+                      'Estatísticas',
+                      style: AppDesignSystem.body.copyWith(
+                        color: isDark
+                            ? AppDesignSystem.darkPrimaryLabel
+                            : AppDesignSystem.lightPrimaryLabel,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              if (currentAssistant != null)
+                PopupMenuItem(
+                  value: 'assistant_settings',
+                  child: Row(
+                    children: [
+                      Icon(
+                        Icons.settings_outlined,
+                        color: isDark
+                            ? AppDesignSystem.darkPrimaryLabel
+                            : AppDesignSystem.lightPrimaryLabel,
+                        size: 20,
+                      ),
+                      SizedBox(width: AppDesignSystem.spacing12),
+                      Text(
+                        'Config. Assistente',
+                        style: AppDesignSystem.body.copyWith(
+                          color: isDark
+                              ? AppDesignSystem.darkPrimaryLabel
+                              : AppDesignSystem.lightPrimaryLabel,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              PopupMenuItem(
+                value: 'settings',
+                child: Row(
+                  children: [
+                    Icon(
+                      Icons.settings,
+                      color: isDark
+                          ? AppDesignSystem.darkPrimaryLabel
+                          : AppDesignSystem.lightPrimaryLabel,
+                      size: 20,
+                    ),
+                    SizedBox(width: AppDesignSystem.spacing12),
+                    Text(
+                      'Configurações',
+                      style: AppDesignSystem.body.copyWith(
+                        color: isDark
+                            ? AppDesignSystem.darkPrimaryLabel
+                            : AppDesignSystem.lightPrimaryLabel,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              const PopupMenuDivider(),
+              PopupMenuItem(
+                value: 'logout',
+                child: Row(
+                  children: [
+                    const Icon(
+                      Icons.logout,
+                      color: AppDesignSystem.systemRed,
+                      size: 20,
+                    ),
+                    SizedBox(width: AppDesignSystem.spacing12),
+                    Text(
+                      'Sair',
+                      style: AppDesignSystem.body.copyWith(
+                        color: AppDesignSystem.systemRed,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
           // Indicador de loading
           if (_isLoading)
             Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16.0),
+              padding: const EdgeInsets.symmetric(horizontal: 8.0),
               child: Center(
                 child: SizedBox(
                   width: 20,
@@ -989,27 +1146,6 @@ class _ChatScreenState extends State<ChatScreen> with AutomaticKeepAliveClientMi
                   ),
                 ),
               ),
-            ),
-          // Botão de configurações do assistente
-          if (currentAssistant != null)
-            IconButton(
-              icon: Icon(
-                Icons.settings_outlined,
-                color: isDark
-                    ? AppDesignSystem.darkPrimaryLabel
-                    : AppDesignSystem.lightPrimaryLabel,
-              ),
-              tooltip: 'Configurar Assistente',
-              onPressed: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) => AssistantEditScreen(
-                      assistant: currentAssistant,
-                    ),
-                  ),
-                );
-              },
             ),
         ],
       ),

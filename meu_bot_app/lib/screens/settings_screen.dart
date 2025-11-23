@@ -1,9 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
+import 'package:flutter_animate/flutter_animate.dart';
 import '../services/preferences_service.dart';
+import '../services/supabase_service.dart';
 import '../theme/app_themes.dart';
 import '../theme/theme_provider.dart';
+import '../theme/design_system.dart';
+import '../screens/theme_selection_screen.dart';
+import '../screens/stats_screen.dart';
 
 /// Tela de configurações do aplicativo
 ///
@@ -227,9 +232,15 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   children: [
                     _buildInfoCard(isDark),
                     const SizedBox(height: 24),
+                    _buildAppearanceSection(isDark),
+                    const SizedBox(height: 24),
+                    _buildDataSection(isDark),
+                    const SizedBox(height: 24),
                     _buildWebhookSection(isDark),
                     const SizedBox(height: 24),
                     _buildActionsSection(isDark),
+                    const SizedBox(height: 24),
+                    _buildAboutSection(isDark),
                   ],
                 ),
               ),
@@ -543,6 +554,269 @@ class _SettingsScreenState extends State<SettingsScreen> {
           ),
         ],
       ),
+    );
+  }
+
+  /// Seção de aparência
+  Widget _buildAppearanceSection(bool isDark) {
+    final themeProvider = Provider.of<ThemeProvider>(context);
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          children: [
+            Icon(
+              Icons.palette,
+              color: isDark ? Colors.white : Colors.black87,
+            ),
+            const SizedBox(width: 8),
+            Text(
+              'Aparência',
+              style: TextStyle(
+                fontSize: 18,
+                fontWeight: FontWeight.bold,
+                color: isDark ? Colors.white : Colors.black87,
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: 16),
+        Material(
+          color: Colors.transparent,
+          child: InkWell(
+            onTap: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => const ThemeSelectionScreen(),
+                ),
+              );
+            },
+            borderRadius: BorderRadius.circular(12),
+            child: Container(
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                color: isDark ? AppThemes.darkSurface : Colors.white,
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(
+                  color: isDark ? Colors.grey[700]! : Colors.grey[300]!,
+                ),
+              ),
+              child: Row(
+                children: [
+                  Icon(
+                    themeProvider.themeIcon,
+                    color: isDark ? Colors.grey[400] : Colors.grey[600],
+                  ),
+                  const SizedBox(width: 16),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'Tema',
+                          style: TextStyle(
+                            fontWeight: FontWeight.w600,
+                            fontSize: 16,
+                            color: isDark ? Colors.white : Colors.black87,
+                          ),
+                        ),
+                        const SizedBox(height: 4),
+                        Text(
+                          themeProvider.themeName,
+                          style: TextStyle(
+                            fontSize: 14,
+                            color: isDark ? Colors.grey[400] : Colors.grey[600],
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  Icon(
+                    Icons.chevron_right,
+                    color: isDark ? Colors.grey[400] : Colors.grey[600],
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ).animate().fadeIn(duration: 400.ms).slideY(begin: 0.1, end: 0),
+      ],
+    );
+  }
+
+  /// Seção de dados
+  Widget _buildDataSection(bool isDark) {
+    final user = SupabaseService.getCurrentUser();
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          children: [
+            Icon(
+              Icons.data_usage,
+              color: isDark ? Colors.white : Colors.black87,
+            ),
+            const SizedBox(width: 8),
+            Text(
+              'Dados',
+              style: TextStyle(
+                fontSize: 18,
+                fontWeight: FontWeight.bold,
+                color: isDark ? Colors.white : Colors.black87,
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: 16),
+        Material(
+          color: Colors.transparent,
+          child: InkWell(
+            onTap: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => const StatsScreen(),
+                ),
+              );
+            },
+            borderRadius: BorderRadius.circular(12),
+            child: Container(
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                color: isDark ? AppThemes.darkSurface : Colors.white,
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(
+                  color: isDark ? Colors.grey[700]! : Colors.grey[300]!,
+                ),
+              ),
+              child: Row(
+                children: [
+                  Icon(
+                    Icons.bar_chart,
+                    color: isDark ? Colors.grey[400] : Colors.grey[600],
+                  ),
+                  const SizedBox(width: 16),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'Estatísticas e Gestão',
+                          style: TextStyle(
+                            fontWeight: FontWeight.w600,
+                            fontSize: 16,
+                            color: isDark ? Colors.white : Colors.black87,
+                          ),
+                        ),
+                        const SizedBox(height: 4),
+                        Text(
+                          'Ver estatísticas de uso e gerenciar dados',
+                          style: TextStyle(
+                            fontSize: 14,
+                            color: isDark ? Colors.grey[400] : Colors.grey[600],
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  Icon(
+                    Icons.chevron_right,
+                    color: isDark ? Colors.grey[400] : Colors.grey[600],
+                  ),
+                ],
+              ),
+            ),
+          ),
+        )
+            .animate()
+            .fadeIn(delay: 100.ms, duration: 400.ms)
+            .slideY(begin: 0.1, end: 0),
+      ],
+    );
+  }
+
+  /// Seção sobre
+  Widget _buildAboutSection(bool isDark) {
+    final user = SupabaseService.getCurrentUser();
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          children: [
+            Icon(
+              Icons.info,
+              color: isDark ? Colors.white : Colors.black87,
+            ),
+            const SizedBox(width: 8),
+            Text(
+              'Sobre',
+              style: TextStyle(
+                fontSize: 18,
+                fontWeight: FontWeight.bold,
+                color: isDark ? Colors.white : Colors.black87,
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: 16),
+        Container(
+          padding: const EdgeInsets.all(16),
+          decoration: BoxDecoration(
+            color: isDark ? AppThemes.darkSurface : Colors.white,
+            borderRadius: BorderRadius.circular(12),
+            border: Border.all(
+              color: isDark ? Colors.grey[700]! : Colors.grey[300]!,
+            ),
+          ),
+          child: Column(
+            children: [
+              _buildAboutRow('Versão', '1.0.0', Icons.info_outline, isDark),
+              const Divider(height: 24),
+              _buildAboutRow(
+                'Usuário',
+                user?.email ?? 'Não autenticado',
+                Icons.person_outline,
+                isDark,
+              ),
+            ],
+          ),
+        ).animate().fadeIn(delay: 200.ms, duration: 400.ms).slideY(begin: 0.1, end: 0),
+      ],
+    );
+  }
+
+  /// Item da seção sobre
+  Widget _buildAboutRow(String label, String value, IconData icon, bool isDark) {
+    return Row(
+      children: [
+        Icon(
+          icon,
+          size: 20,
+          color: isDark ? Colors.grey[400] : Colors.grey[600],
+        ),
+        const SizedBox(width: 12),
+        Expanded(
+          child: Text(
+            label,
+            style: TextStyle(
+              fontSize: 14,
+              color: isDark ? Colors.grey[300] : Colors.grey[700],
+            ),
+          ),
+        ),
+        Text(
+          value,
+          style: TextStyle(
+            fontSize: 14,
+            fontWeight: FontWeight.w600,
+            color: isDark ? Colors.white : Colors.black87,
+          ),
+        ),
+      ],
     );
   }
 }
