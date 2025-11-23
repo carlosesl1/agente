@@ -139,4 +139,44 @@ class ThemeProvider extends ChangeNotifier {
       return Icons.light_mode;
     }
   }
+
+  /// Retorna todas as opções de tema disponíveis
+  List<ThemeModeOption> get availableThemes => [
+        ThemeModeOption(
+          mode: ThemeMode.system,
+          name: 'Sistema',
+          description: 'Segue o tema do dispositivo',
+          icon: Icons.brightness_auto,
+        ),
+        ThemeModeOption(
+          mode: ThemeMode.light,
+          name: 'Claro',
+          description: 'Sempre tema claro',
+          icon: Icons.light_mode,
+        ),
+        ThemeModeOption(
+          mode: ThemeMode.dark,
+          name: 'Escuro',
+          description: 'Sempre tema escuro',
+          icon: Icons.dark_mode,
+        ),
+      ];
+
+  /// Verifica se o tema atual é o padrão (system)
+  bool get isSystemTheme => _themeMode == ThemeMode.system;
+}
+
+/// Opção de tema
+class ThemeModeOption {
+  final ThemeMode mode;
+  final String name;
+  final String description;
+  final IconData icon;
+
+  const ThemeModeOption({
+    required this.mode,
+    required this.name,
+    required this.description,
+    required this.icon,
+  });
 }

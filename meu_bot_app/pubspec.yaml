@@ -100,6 +100,12 @@ dependencies:
   glassmorphism: ^3.0.0  # Efeito vidro fosco
   animated_text_kit: ^4.2.2  # Textos animados
 
+  # Funcionalidades Extras
+  share_plus: ^10.1.2  # Compartilhamento de arquivos
+  flutter_markdown: ^0.7.4+1  # Renderização de Markdown
+  url_launcher: ^6.3.1  # Abrir URLs
+  flutter_cache_manager: ^3.4.1  # Cache de imagens e arquivos
+
 dev_dependencies:
   flutter_test:
     sdk: flutter

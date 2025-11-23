@@ -5,6 +5,7 @@ import 'package:permission_handler/permission_handler.dart';
 import 'package:image/image.dart' as img;
 import 'package:path_provider/path_provider.dart';
 import 'package:device_info_plus/device_info_plus.dart';
+import 'image_compression_service.dart';
 
 /// Serviço de gerenciamento de mídia (imagens e fotos)
 ///
